@@ -1,11 +1,14 @@
+
+
 import numpy as np
 import cv2
 import imageio
 import matplotlib.pyplot as plt
 import math
 import scipy.io
+import os
 
-# print(list(plt.colormaps))
+
 
 def detect_bbox(img,bbox_image):
     contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -270,252 +273,165 @@ class NeedleVisualization:
         return houghline
     
 
-#videos to choose from
-NeedleViz_path1 = '1/edited data/102622_Water.mp4'
-NeedleViz_path2 = 'Data/edited data/102822_Water.mp4'
-NeedleViz_oilAndLatex = 'Data/edited data/oil and latex/capture_5_2022-11-12T16-56-03.mp4'
-NeedleViz_gelAndLatex = 'Data/edited data/ultrasound gel and latex/capture_4_2022-11-12T17-33-19.mp4'
-NeedleViz_clarius1 = 'Data/edited data/clarius_FinalPrototype_needlejustWater.mp4'
-NeedleViz_clarius2 = 'Data/edited data/clarius_FinalPrototype_needlejustWater2.mp4'
-NeedleViz_clarius3 = 'Data/edited data/clarius_FinalPrototype_needleWithSolid.mp4'
-NeedleViz_clarius4 = 'Data/edited data/clarius_FinalPrototype_needleWithSolid2.mp4'
-NeedleViz_clarius5 = 'Data/edited data/clarius_FinalPrototype_needleWithSolid3.mp4'
-
-# for i in range(1,100):
-#     mat = scipy.io.loadmat(f'Pdata_acquisition{i}.mat')
-#     #print(mat)
-#     print(f"frame {i}")
-#     np.diag(range(4))
-#     data_loop = mat["p_data"]
-#     # plt.imshow(data_loop, cmap='gray')
-#     # cv2.imshow("i", data_loop)
-#     #plt.matshow(data_loop,fignum=0)
-#     plt.show(block = False)
-#     plt.pause(1)
-#     plt.close()
-
-
-mat = scipy.io.loadmat(f'Pdata_acquisition2.mat')
-print(mat)
 
 
 
-
-for i in range(1,10):
-    mat = scipy.io.loadmat(f'Pdata_acquisition{i}.mat')
-    print(f"frame {i}")
-    data_loop = mat["p_data"]
-    max_val = np.amax(data_loop)
-    print(max_val)
-    greyscaled_data = np.array(data_loop)/max_val
-    cv2.imshow("Loop display",greyscaled_data)
-    cv2.waitKey(500)
-
-
-    # plt.imshow(data_loop, cmap='gray')
-    # cv2.imshow("i", data_loop)
-    #plt.matshow(data_loop,fignum=0)
-print("finishd loop")
-
-
-
-
-
-
-
-
-
-
-mat = scipy.io.loadmat('Pdata_acquisition1.mat')
-mat10 = scipy.io.loadmat('Pdata_acquisition10.mat')
-data = mat["p_data"]
-data10 = mat["p_data"]
-
-max_val = np.amax(data)
-print(max_val)
-
-greyscaled_data = np.array(data)/max_val
-cv2.imshow("a",greyscaled_data)
-
-
-cv2.imshow("i", data)
-plt.matshow(data)
-plt.matshow(data10)
-
-plt.show()
-
-
-
-
-data_t = data.transpose()
-print(np.shape(data))
-print(len(data))
-print(len(data[0]))
-
-
-
-#image creation
-gen = np.array(data, dtype=np.uint8)
-#this image isnt the best
-
-
-
-image = cv2.cvtColor(np.uint8(data), cv2.COLOR_RGB2GREY)
-# Now you can use 'image' as a regular OpenCV Mat object
-cv2.imshow('Image', image)
-np.diag(range(4))
-#what is this 
-
-
-plt.matshow(data)
-plt.show()
-
-
-
-#control playback speed
-frame_rate = 30
-# vc = cv2.VideoCapture(0) #opens camera
-vc = cv2.VideoCapture(NeedleViz_clarius5)
-vc = mat
-
+curr_frame = 1
 frameWidth = 440
 frameHeight = 440
-vc.set(3, frameWidth)
-vc.set(4, frameHeight)
+#maybe make it so it doesnt have to do img processing on the same img 
+#do that if the algo is too slow.
 
-size = (frameWidth, frameHeight)
-
-#Preparing to create output videos
-image_lst = []
-
-if (vc.isOpened()== False): 
-  print("Error opening video  file")
-
-while(vc.isOpened()):
-    rval, frame = vc.read()
+while(True):
+    #get current file
+    mat_current = scipy.io.loadmat(f'Pdata_acquisition{curr_frame}.mat')
+    print(f"current frame {curr_frame}")
     
-    if rval == True:
+    #take data out
+    data_loop = mat_current["p_data"]
 
-        #Initial Frame preprocessing
-        ##############################################################
-        resized_frame = cv2.resize(frame, (frameWidth,frameHeight))
-        resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_RGB2GRAY)
-        ##############################################################
+    #edit file to traditional greyscale format
+    max_val = np.amax(data_loop)
+    greyscaled_img = np.array(data_loop)/max_val
+
+    #checking for next frame
+    if(os.path.exists(f"Pdata_acquisition{curr_frame+1}.mat")):
+        print("new data exists")
+        curr_frame = curr_frame + 1
+    #deletion of old img in folder
+    if(os.path.exists(f"Pdata_acquisition{curr_frame-100}.mat")):
+        os.remove(f"Pdata_acquisition{curr_frame-100}.mat")
+        print(f"removed file num:{curr_frame-100}")
+
+    #old image processing
+    frame = greyscaled_img
+    #Initial Frame preprocessing
+    ##############################################################
+    resized_frame = cv2.resize(frame, (frameWidth,frameHeight))
+    ##############################################################
+    #Achieving desired region of interest within Raw Frame
+    ##############################################################
+    rstart = 140 #previously 94
+    rend = 348
+    cstart = 195 #previously 166
+    cend = 235 #previously 275
+
+    ROI_image = ROI_creation(resized_frame,rstart,rend,cstart,cend)
+    ############################################################## 
+
+    #Applying Combination Filters
+    #############################################################
+
+    ### THRESHOLDING ###
+    thresh = cv2.threshold(ROI_image, 90, 255, cv2.THRESH_BINARY)[1]
+
+    ### BASIC MORPHOLOGICAL OPERATIONS ###
+    # dilate = cv2.dilate(thresh, None, iterations=1)
+    # erode = cv2.erode(dilate, None, iterations=1)
+    # dilate_2 = cv2.dilate(erode, None, iterations=1)
 
 
-        #Achieving desired region of interest within Raw Frame
-        ##############################################################
-        rstart = 140 #previously 94
-        rend = 348
-        cstart = 195 #previously 166
-        cend = 235 #previously 275
+    ### ADVANCED MORPHOLIGICAL OPERATIONS (skeletonization) ###
+    skel_image = thresh.copy()
 
-        ROI_image = ROI_creation(resized_frame,rstart,rend,cstart,cend)
-        ############################################################## 
-      
-        #Applying Combination Filters
-        #############################################################
-        
-        ### THRESHOLDING ###
-        thresh = cv2.threshold(ROI_image, 90, 255, cv2.THRESH_BINARY)[1]
+    # Step 1: Create an empty skeleton
+    size = np.size(skel_image)
+    skel = np.zeros(skel_image.shape, np.uint8)
 
-        ### BASIC MORPHOLOGICAL OPERATIONS ###
-        # dilate = cv2.dilate(thresh, None, iterations=1)
-        # erode = cv2.erode(dilate, None, iterations=1)
-        # dilate_2 = cv2.dilate(erode, None, iterations=1)
+    # Get a Cross Shaped Kernel
+    element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3,3))
 
-        
-        ### ADVANCED MORPHOLIGICAL OPERATIONS (skeletonization) ###
-        skel_image = thresh.copy()
+    #Step 2: Open the image
+    open = cv2.morphologyEx(skel_image, cv2.MORPH_OPEN, element)
+    #Step 3: Substract open from the original image
+    temp = cv2.subtract(skel_image, open)
+    #Step 4: Erode the original image and refine the skeleton
+    eroded = cv2.erode(skel_image, element)
+    skel = cv2.bitwise_or(skel_image,temp)
+    skel_image = eroded.copy()
+    #############################################################
 
-        # Step 1: Create an empty skeleton
-        size = np.size(skel_image)
-        skel = np.zeros(skel_image.shape, np.uint8)
+    #Applying Edge and Bounding box detection
+    #############################################################
+    canny = cv2.Canny(skel_image, 73,200)
+    bbox = resized_frame.copy()
+    # detect_bbox(canny,bbox)
+    #############################################################
 
-        # Get a Cross Shaped Kernel
-        element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3,3))
+    #Applying Paper Algorithm Filters
+    #############################################################
+    # gabor_filter = cv2.getGaborKernel((6,6), sigma=0.5, theta=0, lambd=0.5, gamma=0.8, psi=0, ktype=cv2.CV_32F)
+    gabor_filter = cv2.getGaborKernel((3,3), sigma=0.95, theta=0, lambd=5, gamma=0.8, psi=0, ktype=cv2.CV_32F)
+    # gabor_filter = cv2.getGaborKernel((3,3), sigma=0.5, theta=0, lambd=30, gamma=0.8, psi=0, ktype=cv2.CV_32F)
 
-        #Step 2: Open the image
-        open = cv2.morphologyEx(skel_image, cv2.MORPH_OPEN, element)
-        #Step 3: Substract open from the original image
-        temp = cv2.subtract(skel_image, open)
-        #Step 4: Erode the original image and refine the skeleton
-        eroded = cv2.erode(skel_image, element)
-        skel = cv2.bitwise_or(skel_image,temp)
-        skel_image = eroded.copy()
-        #############################################################
-        
-        #Applying Edge and Bounding box detection
-        #############################################################
-        canny = cv2.Canny(skel_image, 73,200)
-        bbox = resized_frame.copy()
-        # detect_bbox(canny,bbox)
-        #############################################################
+    gabor_output = cv2.filter2D(ROI_image, -1, gabor_filter)
 
-        #Applying Paper Algorithm Filters
-        #############################################################
-        # gabor_filter = cv2.getGaborKernel((6,6), sigma=0.5, theta=0, lambd=0.5, gamma=0.8, psi=0, ktype=cv2.CV_32F)
-        gabor_filter = cv2.getGaborKernel((3,3), sigma=0.95, theta=0, lambd=5, gamma=0.8, psi=0, ktype=cv2.CV_32F)
-        # gabor_filter = cv2.getGaborKernel((3,3), sigma=0.5, theta=0, lambd=30, gamma=0.8, psi=0, ktype=cv2.CV_32F)
+    #Binarized image is divided into grids for needle axis localization.
+    # - Median filter
+    median_filter = cv2.medianBlur(gabor_output, 7)
+    # - automatic thresholding
+    threshold = cv2.threshold(median_filter, 250, 255, cv2.THRESH_BINARY)[1]
+    # - morphological operations
+    element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+    eroded = cv2.erode(threshold, element)
+    dilated = cv2.dilate(eroded, element)
+    #############################################################
 
-        gabor_output = cv2.filter2D(ROI_image, -1, gabor_filter)
+    #Hough Line Transforms
+    #############################################################
+    # houghline = line_creation(dilated, resized_frame)
+    houghline = line_creation2(dilated, resized_frame)
+    houghcircle = needle_tip_estimation(dilated, resized_frame)
 
-        #Binarized image is divided into grids for needle axis localization.
-        # - Median filter
-        median_filter = cv2.medianBlur(gabor_output, 7)
-        # - automatic thresholding
-        threshold = cv2.threshold(median_filter, 250, 255, cv2.THRESH_BINARY)[1]
-        # - morphological operations
-        element = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
-        eroded = cv2.erode(threshold, element)
-        dilated = cv2.dilate(eroded, element)
-        #############################################################
-        
-        #Hough Line Transforms
-        #############################################################
-        # houghline = line_creation(dilated, resized_frame)
-        houghline = line_creation2(dilated, resized_frame)
-        houghcircle = needle_tip_estimation(dilated, resized_frame)
+    #############################################################
 
-        #############################################################
-        
-        #Overlaying segmentations onto B-mode image
-        #############################################################################################
-        # fgmaskV2_color = cv2.applyColorMap(bbox, cv2.COLORMAP_INFERNO)
-        # resized_frame_revert = cv2.cvtColor(resized_frame, cv2.COLOR_GRAY2RGB)
-        # overlay = cv2.addWeighted(resized_frame_revert, 0.5, fgmaskV2_color, 0.5, 1.0)
-        # cv2.imshow("Bmode Overlay", overlay)
-        ###########################################################################################
+    #Overlaying segmentations onto B-mode image
+    #############################################################################################
+    # fgmaskV2_color = cv2.applyColorMap(bbox, cv2.COLORMAP_INFERNO)
+    # resized_frame_revert = cv2.cvtColor(resized_frame, cv2.COLOR_GRAY2RGB)
+    # overlay = cv2.addWeighted(resized_frame_revert, 0.5, fgmaskV2_color, 0.5, 1.0)
+    # cv2.imshow("Bmode Overlay", overlay)
+    ###########################################################################################
 
-        # Debugging Statements
-        # cv2.imshow('normal frame', resized_frame)
-        # cv2.imshow('ROI frame', ROI_image)
-        # cv2.imshow('thresholding', thresh)
-        # cv2.imshow('Morphological Operations', skel_image)
-        # cv2.imshow('Canny Edge Detection', canny)
-        # cv2.imshow('Object Detection', bbox)
-        # cv2.imshow('Paper Algorithm', dilated)
-        # cv2.imshow('Hough Line Transform', houghline)
-        # cv2.imshow('Needle tip Estimation', houghcircle)
-        
-        #Saving comparison frames as gif 
-        resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_GRAY2BGR)
-        line = cv2.cvtColor(houghline, cv2.COLOR_RGB2BGR)
-        algorithm = cv2.cvtColor(dilated, cv2.COLOR_GRAY2BGR)
-        tip = cv2.cvtColor(houghcircle, cv2.COLOR_RGB2BGR)
-        stack = np.hstack((resized_frame, line, tip))
-        cv2.imshow("stacked", stack)
-        image_lst.append(stack)
+    # Debugging Statements
+    # cv2.imshow('normal frame', resized_frame)
+    # cv2.imshow('ROI frame', ROI_image)
+    # cv2.imshow('thresholding', thresh)
+    # cv2.imshow('Morphological Operations', skel_image)
+    # cv2.imshow('Canny Edge Detection', canny)
+    # cv2.imshow('Object Detection', bbox)
+    # cv2.imshow('Paper Algorithm', dilated)
+    # cv2.imshow('Hough Line Transform', houghline)
+    # cv2.imshow('Needle tip Estimation', houghcircle)
 
-        # Press Q on keyboard to  exit
-        if cv2.waitKey(frame_rate) & 0xFF == ord('q'): #original waitkey is 25
-            break
-    
-    #Break out of loop if video is done
-    else:
-        break  
 
-vc.release() #Release the video capture object
 
-# Close window
-cv2.destroyAllWindows()
+    #Saving comparison frames as gif 
+
+    # resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_GRAY2BGR)
+    # line = cv2.cvtColor(houghline, cv2.COLOR_RGB2BGR)
+    # algorithm = cv2.cvtColor(dilated, cv2.COLOR_GRAY2BGR)
+    # tip = cv2.cvtColor(houghcircle, cv2.COLOR_RGB2BGR)
+    # stack = np.hstack((resized_frame, line, tip))
+    # cv2.imshow("stacked", stack)
+
+
+
+    #add code for  moving and detecting bound box.
+
+    #if bounding box detected keep mirror still
+    #if bounding box moves lost
+    #move mirror +/-1 degree
+    #stop when found
+
+    #if still not found move +-7.5 deg until found 
+
+
+
+
+    #image_lst.append(stack)
+    #can use this to change check rate
+    cv2.waitKey(25)
+
+
+

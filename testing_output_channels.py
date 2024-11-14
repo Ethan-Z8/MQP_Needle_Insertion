@@ -295,8 +295,21 @@ NeedleViz_clarius5 = 'Data/edited data/clarius_FinalPrototype_needleWithSolid3.m
 #     plt.close()
 
 
-mat = scipy.io.loadmat(f'Pdata_acquisition2.mat')
+mat = scipy.io.loadmat(f'Pdata_acquisition1.mat')
 print(mat)
+
+data_loop = mat["p_data"]
+max_val = np.amax(data_loop)
+print(max_val)
+greyscaled_data = np.array(data_loop)/max_val
+mat["p_data"] = greyscaled_data
+
+cv2.imshow("checking output",mat["p_data"])
+resized_frame = cv2.cvtColor(mat["p_data"], cv2.COLOR_RGB2GRAY)
+
+
+cv2.waitKey(500)
+print("test dobe")
 
 
 

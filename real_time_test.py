@@ -38,6 +38,7 @@ while(True):
     
     print(f"current frame {curr_frame}")
     data_loop = mat_current["p_data"]
+    print(type(data_loop))
     #data normalization
     max_val = np.amax(data_loop)
     greyscaled_data = np.array(data_loop)/max_val
@@ -46,16 +47,15 @@ while(True):
     #showing real data
     cv2.imshow("Loop display",greyscaled_data)
     #how often loop runs rn
-    cv2.waitKey(25)
+    cv2.waitKey(10000)
     #logic to move to next frame 
     if(os.path.exists(f"Pdata_acquisition{curr_frame+1}.mat")):
-        print("yay")
         curr_frame = curr_frame + 1
     if(os.path.exists(f"Pdata_acquisition{curr_frame-100}.mat")):
         os.remove(f"Pdata_acquisition{curr_frame-100}.mat")
         print(f"removed file num:{curr_frame-100}")
 
-    if curr_frame == 10:
+    if curr_frame == 11:
         break
     
 

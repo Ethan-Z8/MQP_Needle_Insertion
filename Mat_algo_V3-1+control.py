@@ -70,7 +70,10 @@ def ROI_creation(source_image, row_start, row_end, col_start, col_end):
 def line_creation2(source_image, overlay):
     
     lines = cv2.HoughLinesP(source_image, rho=6, theta=np.pi / 2, threshold=160, lines=np.array([]), minLineLength=40, maxLineGap=4)
-    overlay_image = cv2.cvtColor(overlay, cv2.COLOR_GRAY2RGB)
+
+    #CHANGED HERE
+    # overlay_image = cv2.cvtColor(overlay, cv2.COLOR_GRAY2RGB)
+    overlay_image = overlay
     
     houghline = overlay_image.copy()
     houghcircle = overlay_image.copy()
@@ -114,7 +117,10 @@ def line_creation2(source_image, overlay):
 def needle_tip_estimation(source_image, overlay):
     
     lines = cv2.HoughLinesP(source_image, rho=6, theta=np.pi / 2, threshold=160, lines=np.array([]), minLineLength=40, maxLineGap=4)
-    overlay_image = cv2.cvtColor(overlay, cv2.COLOR_GRAY2RGB)
+
+    #overlay_image = cv2.cvtColor(overlay, cv2.COLOR_GRAY2RGB)
+    #CHANGED HERE
+    overlay_image = overlay
     
     houghcircle = overlay_image.copy()
     
@@ -305,6 +311,8 @@ while(True):
 
     #old image processing
     frame = greyscaled_img
+
+    # print(type(frame[1,1]))
     #Initial Frame preprocessing
     ##############################################################
     resized_frame = cv2.resize(frame, (frameWidth,frameHeight))
@@ -349,11 +357,25 @@ while(True):
     eroded = cv2.erode(skel_image, element)
     skel = cv2.bitwise_or(skel_image,temp)
     skel_image = eroded.copy()
+
+
+
+
+
     #############################################################
 
     #Applying Edge and Bounding box detection
     #############################################################
-    canny = cv2.Canny(skel_image, 73,200)
+    #added casting code?
+    skel_copy = np.uint8(skel_image)
+    #this works
+
+
+    #I CHANGED THEIR CANNY HERE
+    canny = cv2.Canny(skel_copy,73,200)
+
+
+    # canny = cv2.Canny(skel_image, 73,200)
     bbox = resized_frame.copy()
     # detect_bbox(canny,bbox)
     #############################################################
@@ -368,6 +390,10 @@ while(True):
 
     #Binarized image is divided into grids for needle axis localization.
     # - Median filter
+
+    #CHANGED HERE
+    gabor_output = np.uint8(gabor_output)
+
     median_filter = cv2.medianBlur(gabor_output, 7)
     # - automatic thresholding
     threshold = cv2.threshold(median_filter, 250, 255, cv2.THRESH_BINARY)[1]

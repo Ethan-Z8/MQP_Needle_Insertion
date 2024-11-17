@@ -295,6 +295,7 @@ NeedleViz_clarius5 = 'Data/edited data/clarius_FinalPrototype_needleWithSolid3.m
 #     plt.close()
 
 
+
 mat = scipy.io.loadmat(f'Pdata_acquisition1.mat')
 print(mat)
 
@@ -306,10 +307,11 @@ mat["p_data"] = greyscaled_data
 
 cv2.imshow("checking output",mat["p_data"])
 resized_frame = cv2.cvtColor(mat["p_data"], cv2.COLOR_RGB2GRAY)
+#only one channel
 
 
 cv2.waitKey(500)
-print("test dobe")
+print("test done")
 
 
 

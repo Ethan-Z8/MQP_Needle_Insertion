@@ -301,13 +301,20 @@ while(True):
     greyscaled_img = np.array(data_loop)/max_val
 
     #checking for next frame
-    if(os.path.exists(f"Pdata_acquisition{curr_frame+1}.mat")):
+    # if(os.path.exists(f"Pdata_acquisition{curr_frame+1}.mat")):
+    #     print("new data exists")
+    #     curr_frame = curr_frame + 1
+    
+    #changes to is file isntead
+    if(os.path.isfile(f"Pdata_acquisition{curr_frame+1}.mat")):
         print("new data exists")
         curr_frame = curr_frame + 1
     #deletion of old img in folder
     if(os.path.exists(f"Pdata_acquisition{curr_frame-100}.mat")):
         os.remove(f"Pdata_acquisition{curr_frame-100}.mat")
         print(f"removed file num:{curr_frame-100}")
+
+    
 
     #old image processing
     frame = greyscaled_img

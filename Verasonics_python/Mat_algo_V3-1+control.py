@@ -290,7 +290,7 @@ frameHeight = 440
 
 while(True):
     #get current file
-    mat_current = scipy.io.loadmat(f'Pdata_acquisition{curr_frame}.mat')
+    mat_current = (f'Pdata_acquisition{curr_frame}.mat')
     print(f"current frame {curr_frame}")
     
     #take data out

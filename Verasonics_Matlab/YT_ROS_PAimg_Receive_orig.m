@@ -14,15 +14,18 @@ PAIMG_msg = receive(PAIMG_sub);
 PAIMG = PAIMG_msg.Data;
 
 PAIMG0 = reshape(PAIMG,570,500);
-matrix_sum = sum(PAIMG0);
+% matrix_sum = sum(PAIMG0);
 
-imshow(PAIMG0)
-image(PAIMG0)
-imagesc(PAIMG0)
+% imshow(PAIMG0)
+% image(PAIMG0)
+% imagesc(PAIMG0)
+PAIMG1 = PAIMG0./max(PAIMG0(:));
+PAIMG2 = db(PAIMG1);
 
+imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
 
 colormap gray
-drawnow
+% drawnow
 t = toc;
 fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
 k = k+1;

@@ -1,0 +1,23 @@
+Host PC
+
+Connect PC(ethernet in our case(network 8))
+
+ROS SETUP
+
+FIND INIT FILES
+	edit ROS MASTER URI
+	edit local IP by finding IP of current computer
+
+activate verasonics(type verasonics twice)(if not causes problems with verasonics functions)
+
+My PC
+
+Connect to same network as PC(TP-Link-895C)
+
+get ros master uri by running rosinit
+
+
+
+
+Run receive script(your PC)
+Run send script(verasonics PC)

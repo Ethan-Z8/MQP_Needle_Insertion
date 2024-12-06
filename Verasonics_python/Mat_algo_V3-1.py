@@ -415,7 +415,7 @@ while(True):
 
     #image_lst.append(stack)
     #can use this to change check rate
-    cv2.waitKey(25)
+    cv2.waitKey(10000)
 
 
 

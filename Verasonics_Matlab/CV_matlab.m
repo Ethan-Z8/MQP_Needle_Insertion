@@ -6,38 +6,70 @@ clc
 
 
 
-rosshutdown;
+% rosshutdown;
 
-rosinit
+% rosinit
 
 
+% PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
+% k = 1; t1=0;
+% tic;
+% while 1
+% PAIMG_msg = receive(PAIMG_sub);
+% PAIMG = PAIMG_msg.Data;
 
-PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
-k = 1; t1=0;
-tic;
-while 1
-PAIMG_msg = receive(PAIMG_sub);
-PAIMG = PAIMG_msg.Data;
+% PAIMG0 = reshape(PAIMG,570,500);
+% imagesc(PAIMG0)
+% colormap gray
+% drawnow
+% t = toc;
+% fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
+% k = k+1;
+% t1 = t;
+% end
 
-PAIMG0 = reshape(PAIMG,570,500);
-imagesc(PAIMG0)
-colormap gray
-drawnow
-t = toc;
-fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
-k = k+1;
-t1 = t;
+
+% rstart = 140;
+% rend =348;
+% cstart = 195;
+% cend = 235;
+
+% ROI_image = ROI_creation(PAIMG,rstart,rend,cstart,cend)
+function detect_bbox(img, bbox_image)
+    % Find boundaries (contours) in a binary image
+    boundaries = bwboundaries(img, 'noholes');
+    
+    % Loop through each contour
+    for k = 1:length(boundaries)
+        boundary = boundaries{k};  % Get the kth contour
+        
+        % Calculate the area of the contour
+        area = polyarea(boundary(:,2), boundary(:,1));  % Note the order of coordinates in polyarea
+        
+        areaMin = 15;
+        areaMax = 100;
+        
+        % Only process contours within the specified area range
+        if area > areaMin && area < areaMax
+            % Calculate the centroid (moment of the contour)
+            M = regionprops(boundary(:,2), boundary(:,1), 'Centroid');
+            cx = round(M.Centroid(1));
+            cy = round(M.Centroid(2));
+            disp([cx, cy])  % Display centroid coordinates
+            
+            % Draw bounding box
+            % Get the bounding box for the contour (min bounding rectangle)
+            x = min(boundary(:,2));
+            y = min(boundary(:,1));
+            w = max(boundary(:,2)) - x;
+            h = max(boundary(:,1)) - y;
+            
+            % Draw rectangle around the contour
+            bbox_image = insertShape(bbox_image, 'Rectangle', [x, y, w, h], 'Color', 'green', 'LineWidth', 5);
+        end
+    end
+    imshow(bbox_image);  % Display the image with bounding boxes
 end
-
-
-rstart = 140;
-rend =348;
-cstart = 195;
-cend = 235;
-
-ROI_image = ROI_creation(PAIMG,rstart,rend,cstart,cend)
-
-
 
 function houghline = line_creation(source_image, overlay)
     % Perform edge detection (Canny) on the source image if not already done
@@ -66,11 +98,103 @@ function houghline = line_creation(source_image, overlay)
 end
 
 
+
+
 function  ROI_image = ROI_creation(image,row_start, row_end, col_start,col_end)
     ROI_frame = image(row_start:row_end, col_start:col_end)
 
     ROI_image = ROI_frame;
 end
 
-function 
 
+function houghline = line_creation2(source_image, overlay)
+    % Perform edge detection (Canny) on the source image if not already done
+    edges = edge(source_image, 'Canny');  % Apply Canny edge detector
+
+    % Perform Hough transform to detect lines
+    [H, T, R] = hough(edges);
+
+    % Extract line segments from the Hough transform using 'houghlines'
+    lines = houghlines(edges, T, R, 'FillGap', 4, 'MinLength', 40);
+    
+    % Convert the overlay image from grayscale to RGB if needed
+    overlay_image = repmat(overlay, [1, 1, 3]);  % Convert grayscale to RGB
+    houghline = overlay_image;  % Copy overlay image to draw lines
+    houghcircle = overlay_image;  % Create a copy for drawing circle
+
+    % List to store the lengths of the lines
+    length_line_list = [];
+
+    % Check if there are any lines detected
+    if ~isempty(lines)
+        for k = 1:length(lines)
+            % Get start and end points of each line
+            x1 = lines(k).point1(1);
+            y1 = lines(k).point1(2);
+            x2 = lines(k).point2(1);
+            y2 = lines(k).point2(2);
+
+            % Calculate the length of the line
+            lengthOfLine = sqrt((x2 - x1)^2 + (y2 - y1)^2);
+            length_line_list = [length_line_list, lengthOfLine];
+        end
+        
+        % Find the index of the longest line
+        [~, index_number] = max(length_line_list);
+
+        % Get the coordinates of the longest line
+        x1 = lines(index_number).point1(1);
+        y1 = lines(index_number).point1(2);
+        x2 = lines(index_number).point2(1);
+        y2 = lines(index_number).point2(2);
+
+        % Draw the longest line on the image
+        color = [0, 255, 0];  % Green color in RGB
+        thickness = 2;        % Line thickness
+
+        % Draw the line on houghline image
+        houghline = insertShape(houghline, 'Line', [x1, y1, x2, y2], 'Color', color, 'LineWidth', thickness);
+
+        % Draw a circle at the end point of the longest line
+        radius = 5;  % Circle radius
+        houghcircle = insertShape(houghcircle, 'FilledCircle', [x2, y2, radius], 'Color', color, 'LineWidth', thickness);
+    end
+end
+
+
+def needle_tip_estimation(source_image, overlay):
+    
+    lines = cv2.HoughLinesP(source_image, rho=6, theta=np.pi / 2, threshold=160, lines=np.array([]), minLineLength=40, maxLineGap=4)
+    overlay_image = cv2.cvtColor(overlay, cv2.COLOR_GRAY2RGB)
+    
+    houghcircle = overlay_image.copy()
+    
+    length_line_list = []
+
+    if lines is not None:
+        for line in lines:
+
+            x1 = line[0][0]
+            y1 = line[0][1]
+            x2 = line[0][2]
+            y2 = line[0][3]
+            
+            lengthOfLine = math.sqrt(abs(x2-x1)^2 + abs(y2-y1)^2)
+            length_line_list.append(lengthOfLine)
+
+        index_number = length_line_list.index(max(length_line_list))
+
+        x1 = lines[index_number][0][0]
+        y1 = lines[index_number][0][1]
+        x2 = lines[index_number][0][2]
+        y2 = lines[index_number][0][3]
+
+        start_point = (x1, y1)
+
+        color = (0, 255, 0) # Green color in BGR
+        thickness = 2 # Line thickness of 9 px
+        radius = 5 #circle radius
+
+        cv2.circle(houghcircle, start_point, radius, color, thickness)
+    
+    return houghcircle

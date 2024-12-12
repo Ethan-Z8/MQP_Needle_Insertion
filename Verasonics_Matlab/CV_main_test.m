@@ -9,18 +9,32 @@ cend = 235;
 
 
 image_data = readtable('array_frame_1.csv');  % Use readmatrix in newer versions of MATLAB
-print("hi2")
+
 % Display the image
 class(image_data)
 
 matrix = table2array(image_data);
 
-imagesc(matrix)
+% imagesc(matrix)
 colormap gray
-print("hi")
 
-ROI_image = ROI_creation(matrix)
-imagesc(ROI_image, rstart,rend,cstart,cend)
+
+
+ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend)
+imagesc(ROI_image)
+
+threshold = 90 / 255; % Normalize the threshold to [0, 1] range for MATLAB
+binary_image = imbinarize(ROI_image, threshold);
+
+% If you need the binary image as uint8 (0 or 255), scale it:
+binary_image = uint8(binary_image) * 255;
+
+skel_image = binary_image; % Create a copy of the binary image
+
+
+size = numel(skel_image);
+skel = zeros(size(skel_image), 'uint8');
+
 
 
 
@@ -120,11 +134,32 @@ end
 
 
 
-function  ROI_image = ROI_creation(image,row_start, row_end, col_start,col_end)
-    ROI_frame = image(row_start:row_end, col_start:col_end)
+% function  ROI_image = ROI_creation(image,row_start, row_end, col_start,col_end)
+%     ROI_frame = image(row_start:row_end, col_start:col_end)
 
-    ROI_image = ROI_frame;
+%     ROI_image = ROI_frame;
+% end
+function ROI_image = ROI_creation(source_image, row_start, row_end, col_start, col_end)
+    % Extract the region of interest (ROI) from the source image
+    ROI_frame = source_image(row_start:row_end-1, col_start:col_end-1);
+
+    % Initialize an empty image of the same size as the source image
+    ROI_image = zeros(size(source_image));
+    % Offset variables
+    x = row_start;
+    y = col_start;
+    % Iterate through the ROI and copy non-zero values to the new image
+    for i = 1:(row_end - row_start)
+        for j = 1:(col_end - col_start)
+            if ROI_frame(i, j) ~= 0
+                ROI_image(x + i - 1, y + j - 1) = ROI_frame(i, j);
+            end
+        end
+    end
 end
+
+
+
 
 
 function houghline = line_creation2(source_image, overlay)

@@ -59,7 +59,11 @@ skel = skel_image | temp;
 % Update skel_image for further processing
 skel_image = eroded;
 
-imagesc(skel_image)
+
+% imagesc(skel_image);
+canny = edge(skel_image, 'Canny', [73 200]);
+imagesc(canny);
+
 
 
 

@@ -16,15 +16,19 @@ class(image_data)
 matrix = table2array(image_data);
 
 % imagesc(matrix)
+matrix = matrix./255;
 colormap gray
 
 
 
 ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend)
-imagesc(ROI_image)
+% imagesc(ROI_image)
+
 
 threshold = 90 / 255; % Normalize the threshold to [0, 1] range for MATLAB
 binary_image = imbinarize(ROI_image, threshold);
+
+imagesc(binary_image)
 
 % If you need the binary image as uint8 (0 or 255), scale it:
 binary_image = uint8(binary_image) * 255;

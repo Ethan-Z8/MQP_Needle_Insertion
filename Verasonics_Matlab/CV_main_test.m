@@ -11,7 +11,7 @@ cend = 235;
 image_data = readtable('array_frame_1.csv');  % Use readmatrix in newer versions of MATLAB
 
 % Display the image
-class(image_data)
+class(image_data);
 
 matrix = table2array(image_data);
 
@@ -21,23 +21,47 @@ colormap gray
 
 
 
-ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend)
+ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend);
 % imagesc(ROI_image)
 
 
 threshold = 90 / 255; % Normalize the threshold to [0, 1] range for MATLAB
 binary_image = imbinarize(ROI_image, threshold);
 
-imagesc(binary_image)
+% imagesc(binary_image);
 
 % If you need the binary image as uint8 (0 or 255), scale it:
 binary_image = uint8(binary_image) * 255;
 
+
 skel_image = binary_image; % Create a copy of the binary image
 
-
-size = numel(skel_image);
+pix_num = numel(skel_image);%used to be called size
 skel = zeros(size(skel_image), 'uint8');
+
+% Step 1: Get a Cross Shaped Kernel
+
+
+element = strel('arbitrary', [0 1 0; 1 1 1; 0 1 0]); % Cross-shaped structuring element
+
+% Step 2: Open the image
+opened = imopen(skel_image, element); % Morphological opening
+
+% Step 3: Subtract the opened image from the original image
+temp = skel_image - opened; % Element-wise subtraction
+
+% Step 4: Erode the original image
+eroded = imerode(skel_image, element);
+
+% Step 5: Refine the skeleton by performing a bitwise OR operation
+skel = skel_image | temp;
+
+% Update skel_image for further processing
+skel_image = eroded;
+
+imagesc(skel_image)
+
+
 
 
 

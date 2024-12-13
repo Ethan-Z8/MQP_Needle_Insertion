@@ -61,9 +61,34 @@ skel_image = eroded;
 
 
 % imagesc(skel_image);
-canny = edge(skel_image, 'Canny', [73 200]);
-imagesc(canny);
+% this doenst work yet
+% canny = edge(skel_image, 'Canny', [73/255 200/255]);
+%can add custom thresholding if needed
+canny = edge(skel_image,'Canny');
 
+bbox = matrix
+
+
+
+% Define Gabor filter parameters
+sigma = 0.95;
+theta = 0;   % Rotation angle (in radians)
+lambda = 5;  % Wavelength
+gamma = 0.8; % Spatial aspect ratio
+psi = 0;     % Phase offset
+
+% Create the Gabor filter using fspecial
+gabor_filter = gabor_filter_2d(sigma, theta, lambda, gamma, psi);
+
+% Apply Gabor filter to the ROI image
+gabor_output = imfilter(ROI_image, gabor_filter, 'conv', 'same');
+
+garbor_filter2 = gabor(lambda,theta);
+output = imgaborfilt(ROI_image,garbor_filter2);
+
+
+% Function to generate the Gabor filter
+imagesc(output);
 
 
 
@@ -101,6 +126,20 @@ imagesc(canny);
 % cend = 235;
 
 % ROI_image = ROI_creation(PAIMG,rstart,rend,cstart,cend)
+
+% Function to generate the Gabor filter
+function gabor = gabor_filter_2d(sigma, theta, lambda, gamma, psi)
+    % Create meshgrid for filter size
+    [x, y] = meshgrid(-1:1, -1:1); % 3x3 grid as in the original filter size
+    x_theta = x * cos(theta) + y * sin(theta);
+    y_theta = -x * sin(theta) + y * cos(theta);
+    
+    % Calculate the Gabor function
+    gabor = exp(-0.5 * (x_theta.^2 + gamma^2 * y_theta.^2) / sigma^2) ...
+            .* cos(2 * pi * x_theta / lambda + psi);
+end
+
+
 function detect_bbox(img, bbox_image)
     % Find boundaries (contours) in a binary image
     boundaries = bwboundaries(img, 'noholes');

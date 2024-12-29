@@ -65,8 +65,12 @@ skel_image = eroded;
 % canny = edge(skel_image, 'Canny', [73/255 200/255]);
 %can add custom thresholding if needed
 canny = edge(skel_image,'Canny');
+%canny works
 
-bbox = matrix
+
+
+bbox = matrix;
+%this is bbox = resized_frame.copy()
 
 
 
@@ -77,20 +81,22 @@ lambda = 5;  % Wavelength
 gamma = 0.8; % Spatial aspect ratio
 psi = 0;     % Phase offset
 
+lambda = [lambda];
 % Create the Gabor filter using fspecial
-gabor_filter = gabor_filter_2d(sigma, theta, lambda, gamma, psi);
 
-% Apply Gabor filter to the ROI image
-gabor_output = imfilter(ROI_image, gabor_filter, 'conv', 'same');
+% Create the Gabor filter
+
+
+
 
 garbor_filter2 = gabor(lambda,theta);
 output = imgaborfilt(ROI_image,garbor_filter2);
+imagesc(output)
+
 
 
 % Function to generate the Gabor filter
-imagesc(output);
-
-
+% imagesc(output);
 
 
 

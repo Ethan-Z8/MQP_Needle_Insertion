@@ -2,39 +2,97 @@ clear all
 close all
 clc
 
+rstart = 140;
+rend =348;
+cstart = 195;
+cend = 235;
 
 
+% image_data = readtable('array_frame_1.csv');  % Use readmatrix in newer versions of MATLAB
 
+% % Display the image
+% class(image_data);
 
-% rosshutdown;
+% matrix = table2array(image_data);
 
-% rosinit
-
-
-% PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
-% k = 1; t1=0;
-% tic;
-% while 1
-% PAIMG_msg = receive(PAIMG_sub);
-% PAIMG = PAIMG_msg.Data;
-
-% PAIMG0 = reshape(PAIMG,570,500);
-% imagesc(PAIMG0)
+% % imagesc(matrix)
+% matrix = matrix./255;
 % colormap gray
-% drawnow
-% t = toc;
-% fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
-% k = k+1;
-% t1 = t;
-% end
+
+[image, map] = imread("C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Data_new\needle_tip_sample_1.jpg");
+whos image map
+% imagesc(image);
+
+blurredImg = maxBoxBlur(image, 8);
+
+% imagesc(blurredImg)
+
+ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend);
+% imagesc(ROI_image)
 
 
-% rstart = 140;
-% rend =348;
-% cstart = 195;
-% cend = 235;
 
-% ROI_image = ROI_creation(PAIMG,rstart,rend,cstart,cend)
+
+
+threshold = 90 / 255; % Normalize the threshold to [0, 1] range for MATLAB
+binary_image = imbinarize(ROI_image, threshold);
+imagesc(binary_image)
+
+% imagesc(binary_image);
+
+% If you need the binary image as uint8 (0 or 255), scale it:
+binary_image = uint8(binary_image) * 255;
+
+
+
+
+function output = maxBoxBlur(inputImage, windowSize)
+
+    [rows, cols, channels] = size(inputImage);
+    
+    % If the image is grayscale, it will have only 2 dimensions
+    if channels == 1
+        inputImage = cat(3, inputImage, inputImage, inputImage); % Convert to a 3D image for consistency
+        channels = 3;
+    end
+    
+    % Pad the image to handle boundary conditions
+    padSize = floor(windowSize / 2);
+    paddedImage = padarray(inputImage, [padSize padSize], 'replicate', 'both');
+    
+    % Prepare the output image
+    output = zeros(rows, cols, channels, 'like', inputImage); 
+    
+    % Loop through each pixel in the image
+    for r = 1:rows
+        for c = 1:cols
+            % Extract the window from the padded image (local neighborhood)
+            window = paddedImage(r:r + windowSize - 1, c:c + windowSize - 1, :);
+            % For each channel, get the maximum value in the neighborhood
+            for ch = 1:channels
+                output(r, c, ch) = max(window(:,:,ch), [], 'all');
+            end
+        end
+    end
+    
+    % Convert the output image to the same type as the input image
+    output = cast(output, class(inputImage));
+end
+
+
+
+function gabor = gabor_filter_2d(sigma, theta, lambda, gamma, psi)
+    % Create meshgrid for filter size
+    [x, y] = meshgrid(-1:1, -1:1); % 3x3 grid as in the original filter size
+    x_theta = x * cos(theta) + y * sin(theta);
+    y_theta = -x * sin(theta) + y * cos(theta);
+    
+    % Calculate the Gabor function
+    gabor = exp(-0.5 * (x_theta.^2 + gamma^2 * y_theta.^2) / sigma^2) ...
+            .* cos(2 * pi * x_theta / lambda + psi);
+end
+
+
 function detect_bbox(img, bbox_image)
     % Find boundaries (contours) in a binary image
     boundaries = bwboundaries(img, 'noholes');
@@ -100,11 +158,32 @@ end
 
 
 
-function  ROI_image = ROI_creation(image,row_start, row_end, col_start,col_end)
-    ROI_frame = image(row_start:row_end, col_start:col_end)
+% function  ROI_image = ROI_creation(image,row_start, row_end, col_start,col_end)
+%     ROI_frame = image(row_start:row_end, col_start:col_end)
 
-    ROI_image = ROI_frame;
+%     ROI_image = ROI_frame;
+% end
+function ROI_image = ROI_creation(source_image, row_start, row_end, col_start, col_end)
+    % Extract the region of interest (ROI) from the source image
+    ROI_frame = source_image(row_start:row_end-1, col_start:col_end-1);
+
+    % Initialize an empty image of the same size as the source image
+    ROI_image = zeros(size(source_image));
+    % Offset variables
+    x = row_start;
+    y = col_start;
+    % Iterate through the ROI and copy non-zero values to the new image
+    for i = 1:(row_end - row_start)
+        for j = 1:(col_end - col_start)
+            if ROI_frame(i, j) ~= 0
+                ROI_image(x + i - 1, y + j - 1) = ROI_frame(i, j);
+            end
+        end
+    end
 end
+
+
+
 
 
 function houghline = line_creation2(source_image, overlay)

@@ -21,11 +21,25 @@ cend = 235;
 
 [image, map] = imread("C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Data_new\needle_tip_sample_1.jpg");
 whos image map
-% imagesc(image);
 
-blurredImg = maxBoxBlur(image, 8);
+colormap gray
+black_white = im2gray(image);
+% imagesc(black_white);
+% imshow(black_white);
+max(black_white)
 
-% imagesc(blurredImg)
+image = black_white;
+black_white = black_white ./255;
+
+
+% imagesc(black_white);
+
+
+blurredImg = maxBoxBlur(black_white, 2);
+imagesc(blurredImg);
+
+
+
 
 ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend);
 % imagesc(ROI_image)
@@ -36,6 +50,7 @@ ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend);
 
 threshold = 90 / 255; % Normalize the threshold to [0, 1] range for MATLAB
 binary_image = imbinarize(ROI_image, threshold);
+
 imagesc(binary_image)
 
 % imagesc(binary_image);

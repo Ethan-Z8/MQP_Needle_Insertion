@@ -3,9 +3,9 @@ close all
 clc
 
 rstart = 140;
-rend =348;
+rend =900;
 cstart = 195;
-cend = 235;
+cend = 1000;
 
 
 % image_data = readtable('array_frame_1.csv');  % Use readmatrix in newer versions of MATLAB
@@ -28,16 +28,20 @@ black_white = im2gray(image);
 % imshow(black_white);
 max(black_white)
 
+
+
 image = black_white;
 black_white = black_white ./255;
 
 
+
 % imagesc(black_white);
 
+image_2 = maxBoxBlur(black_white, 2);
 
+imagesc(image_2)
 blurredImg = maxBoxBlur(black_white, 2);
-imagesc(blurredImg);
-
+% imagesc(blurredImg);
 
 
 
@@ -62,9 +66,7 @@ binary_image = uint8(binary_image) * 255;
 
 
 function output = maxBoxBlur(inputImage, windowSize)
-
     [rows, cols, channels] = size(inputImage);
-    
     % If the image is grayscale, it will have only 2 dimensions
     if channels == 1
         inputImage = cat(3, inputImage, inputImage, inputImage); % Convert to a 3D image for consistency

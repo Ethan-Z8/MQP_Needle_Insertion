@@ -7,40 +7,73 @@ rend =900;
 cstart = 195;
 cend = 1000;
 
-
-% image_data = readtable('array_frame_1.csv');  % Use readmatrix in newer versions of MATLAB
-
-% % Display the image
-% class(image_data);
-
-% matrix = table2array(image_data);
-
-% % imagesc(matrix)
-% matrix = matrix./255;
-% colormap gray
-
 [image, map] = imread("C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Data_new\needle_tip_sample_1.jpg");
-whos image map
+whos image map;
+% class(image)
 
-colormap gray
+[image2, map2] = imread("C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Data_new\needle_tip_sample_2.jpg");
+colormap gray;
+bw_2 = im2gray(image2);
+
+%imagesc(image)
+%this shows the original image
 black_white = im2gray(image);
-imagesc(black_white);
-% imshow(black_white);
-max(black_white)
+%255 max
+
+% class(black_white)
+
+%1x1332 uint row vector
 
 
+% imagesc(black_white);
+%shows orig
+max(max(black_white));
 
 image = black_white;
-black_white = black_white ./255;
-imagesc(black_white);
 
-image_2 = maxBoxBlur(black_white, 2);
+%need to convert image to floats
+new_img = im2double(black_white);
+
+new_img = new_img ./ (255.0);
+%new image between 0-1
+
+
+
+%blur
+% blurredImg = maxBoxBlur(new_img, 2);
+% imagesc(blurredImg)
+
+
+%try guassian 
+%try max box blur 
+
+maxf =@ (x)max(x(:));
+max_img = nlfilter(image,[7,7],maxf);
+imshow(max_img)
+
+
+
+
+
+%threshold
+
+
+%blob identify
+
+
+
+
+
+%make a box around the needle tip 
+%take the average pixel inensity of that bxo and maximize it
+
+
+
+
 
 % imagesc(image_2)
-blurredImg = maxBoxBlur(black_white, 2);
+
 % imagesc(blurredImg);
-
-
 
 ROI_image = ROI_creation(matrix,rstart,rend,cstart,cend);
 % imagesc(ROI_image)

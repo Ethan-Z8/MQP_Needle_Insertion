@@ -49,11 +49,24 @@ new_img = new_img ./ (255.0);
 
 maxf =@ (x)max(x(:));
 max_img = nlfilter(image,[7,7],maxf);
+% imshow(max_img)
+
+gaus = imgaussfilt(image);
+% imshow(gaus)
+
+
+figure
+figure
+tiledlayout(1,2)
+
+
+nexttile
 imshow(max_img)
+title("nl")
 
-
-
-
+nexttile
+imshow(gaus)
+title("gaus")
 
 %threshold
 

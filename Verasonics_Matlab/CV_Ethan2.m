@@ -1,15 +1,19 @@
 % filename = 'needle_tip_sample_1.jpg';
+% filename = 'needle_tip_sample_2.jpg';
 % filename = 'image_needle.jpeg';
 filename = 'image_needle.jpg';
 inpict = im2double(rgb2gray(imread(filename)));
 
 % remove mean along dimension 2 
 inpict = inpict - mean(inpict,2);
+% imagesc(inpict);
 
 % low pass elliptical filering of the input image (to remove further the
 % salt pepper noise) - adjust filter cut off and order to your own
 % preferences
 spec_img = fftshift(fft2(inpict));
+
+
 
 sze = size(spec_img);
 cutoff1 = 0.5;
@@ -22,6 +26,8 @@ spec_img = spec_img.*f;
 
 % generated backward the output image by inverse fft
 outpict = real(ifft2(ifftshift(spec_img)));
+
+
 
 figure
 subplot(2,1,1),imshow(inpict)

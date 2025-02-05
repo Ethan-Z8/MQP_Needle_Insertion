@@ -69,7 +69,7 @@ imshow(gaus)
 title("gaus")
 
 %threshold
-
+thresh_max = 
 
 %blob identify
 

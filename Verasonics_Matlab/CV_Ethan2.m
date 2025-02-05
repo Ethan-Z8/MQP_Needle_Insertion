@@ -1,19 +1,33 @@
-% filename = 'needle_tip_sample_1.jpg';
+filename = 'needle_tip_sample_1.jpg';
 % filename = 'needle_tip_sample_2.jpg';
 % filename = 'image_needle.jpeg';
-filename = 'image_needle.jpg';
+% filename = 'image_needle.jpg';
 inpict = im2double(rgb2gray(imread(filename)));
 
 % remove mean along dimension 2 
+
+% [rows, cols] = size(img);
+% rstart = rows * 0.1;
+% rend =rows *0.8;%was800
+% cstart = cols *0.1;
+% cend = cols * 0.8;
+
+rstart = 100;%was 300
+rend =800;%was800
+cstart = 400;
+cend = 1200;
+ROI_image = ROI_creation(inpict,rstart,rend,cstart,cend);
+
+inpict = ROI_image;
+
+
+
 inpict = inpict - mean(inpict,2);
-% imagesc(inpict);
 
 % low pass elliptical filering of the input image (to remove further the
 % salt pepper noise) - adjust filter cut off and order to your own
 % preferences
 spec_img = fftshift(fft2(inpict));
-
-
 
 sze = size(spec_img);
 cutoff1 = 0.5;
@@ -26,8 +40,6 @@ spec_img = spec_img.*f;
 
 % generated backward the output image by inverse fft
 outpict = real(ifft2(ifftshift(spec_img)));
-
-
 
 figure
 subplot(2,1,1),imshow(inpict)
@@ -69,6 +81,8 @@ for k = 1:numel(y_selec_unic)
     end
 end
 
+% return
+
 tmp = abs(diff(xfinal));
 ind = find(tmp>0.1*max(tmp));
 [v,ii] = max(diff(ind));
@@ -78,6 +92,7 @@ yyy = yfinal(iii);
 
 plot(xxx, yyy, 'dg')
 hold off;
+
 
 %% FINAL PLOT !!!!!!!!!
 
@@ -195,3 +210,21 @@ end
 
 end
 
+function ROI_image = ROI_creation(source_image, row_start, row_end, col_start, col_end)
+    % Extract the region of interest (ROI) from the source image
+    ROI_frame = source_image(row_start:row_end-1, col_start:col_end-1);
+
+    % Initialize an empty image of the same size as the source image
+    ROI_image = zeros(size(source_image));
+    % Offset variables
+    x = row_start;
+    y = col_start;
+    % Iterate through the ROI and copy non-zero values to the new image
+    for i = 1:(row_end - row_start)
+        for j = 1:(col_end - col_start)
+            if ROI_frame(i, j) ~= 0
+                ROI_image(x + i - 1, y + j - 1) = ROI_frame(i, j);
+            end
+        end
+    end
+end

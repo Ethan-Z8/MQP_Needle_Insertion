@@ -1,8 +1,10 @@
-addpath('path_to_your_function_directory');
+addpath('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\BluetoothClient.m');
 
 
 %testing the movment
 
-bluetoothObj = BluetoothClient();  
+% bluetoothlist
+
+% bluetoothObj = BluetoothClient();  
 
 bluetoothObj.stepF

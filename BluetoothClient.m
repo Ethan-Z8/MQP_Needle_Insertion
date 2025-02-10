@@ -12,7 +12,7 @@ classdef BluetoothClient
     
     methods
         function obj = BluetoothClient()
-            obj.Device = bluetooth("Ultrasound Device MQP");
+            obj.Device = bluetooth("Ultrasound Device");
             fprintf('Connected to device!\n');
         end
 

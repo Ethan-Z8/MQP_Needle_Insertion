@@ -1,3 +1,4 @@
+tic
 filename = 'needle_tip_sample_1.jpg';
 % filename = 'needle_tip_sample_2.jpg';
 % filename = 'image_needle.jpeg';
@@ -12,10 +13,10 @@ inpict = im2double(rgb2gray(imread(filename)));
 % cstart = cols *0.1;
 % cend = cols * 0.8;
 
-rstart = 100;%was 300
-rend =800;%was800
-cstart = 400;
-cend = 1200;
+rstart = 400;%was 300
+rend =700;%was800
+cstart = 300;
+cend = 1000;
 ROI_image = ROI_creation(inpict,rstart,rend,cstart,cend);
 
 inpict = ROI_image;
@@ -47,7 +48,7 @@ subplot(2,1,2),imshow(outpict)
 
 %% attempt to extract the white segment
 % Threshold the image to create a binary image
-binaryImage = outpict > 0.3*max(outpict(:)); 
+binaryImage = outpict > 0.4*max(outpict(:)); 
 
 % Display the binary image
 figure;
@@ -58,10 +59,17 @@ hold on;
 % find the boundary points
 %gets non-zero points in a list y x which are vectors
 [y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
-%shows the boundery points
+%calculate teh boundery points from points found
 [y_selec,x_selec] = myboundary(y,x);
+%draw around found boundry points
 plot(x,y, '.', x_selec, y_selec, '.r')
 title('Boundary points Highlighted');
+
+%find the avg pix values for the threshold values
+pixelValues = inpict(sub2ind(size(binaryImage), y, x));
+avgPixelValue = mean(pixelValues);
+disp("avg pix val: " + avgPixelValue)
+
 
 % last round !!!
 % let say we don't want to keep line objects with width > tol (in pixels)
@@ -69,14 +77,13 @@ tol = 0.03*sze(2); % here the tol is 3% of the picture width
 [y_selec_unic,ia,ic] = unique(y_selec);
                    
 % "scroll" the image along the y direction and look for narrow  profiles 
+
 m = 0;  
 for k = 1:numel(y_selec_unic)
     ind = ic == k;
     x_selected = x_selec(ind);
     dx = max(x_selected) - min(x_selected);
-
     if dx < tol % we keep it
-        % print("test?!!!!!!!!!");
         m = m+1;
         yfinal(m) = y_selec_unic(k);
         xfinal(m) = mean(x_selected);
@@ -84,6 +91,7 @@ for k = 1:numel(y_selec_unic)
 end
 
 % return
+
 
 tmp = abs(diff(xfinal));
 ind = find(tmp>0.1*max(tmp));
@@ -104,7 +112,7 @@ hold on
 plot(xxx, yyy, '.r')
 hold off;
 
-
+toc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function varargout = EFilter(sze, cutoffM, cutoffm, n, varargin)

@@ -1,6 +1,6 @@
 tic
-filename = 'needle_tip_sample_1.jpg';
-% filename = 'needle_tip_sample_2.jpg';
+% filename = 'needle_tip_sample_1.jpg';
+filename = 'needle_tip_sample_2.jpg';
 % filename = 'image_needle.jpeg';
 % filename = 'image_needle.jpg';
 inpict = im2double(rgb2gray(imread(filename)));
@@ -13,10 +13,10 @@ inpict = im2double(rgb2gray(imread(filename)));
 % cstart = cols *0.1;
 % cend = cols * 0.8;
 
-rstart = 400;%was 300
+rstart = 350;%was 300
 rend =700;%was800
-cstart = 300;
-cend = 1000;
+cstart = 400;
+cend = 900;
 ROI_image = ROI_creation(inpict,rstart,rend,cstart,cend);
 
 inpict = ROI_image;

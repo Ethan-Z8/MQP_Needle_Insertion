@@ -7,9 +7,7 @@ rosshutdown;
 rosinit
 
 bluetoothObj = BluetoothClient();  
-
 control_var = 0;
-
 PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
 k = 1; t1=0;
 tic;

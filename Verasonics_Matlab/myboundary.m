@@ -5,6 +5,10 @@ function [x_selec,y_selec] = myboundary(x,y)
     % direction and keep only unique pairs
     [x_out,y_out] = tight_boundary(x,y);
     [y_out2,x_out2] = tight_boundary(y,x);
+    if x_out == -1 && y_out == -1
+        x_selec = -1;
+        y_selec = -1;
+    else
 
     % find unique x , y pairs 
     xx = [x_out(:);x_out2(:)];
@@ -13,6 +17,7 @@ function [x_selec,y_selec] = myboundary(x,y)
     xy = unique([xx yy],'rows');
     x_selec = xy(:,1);
     y_selec = xy(:,2);
+    end
 
 end
 
@@ -32,27 +37,31 @@ function [x_out,y_out] = tight_boundary(x,y)
         upper_boundary(idx) = max(class);
         lower_boundary(idx) = min(class);
     end
-
-    left_boundary = y(x == class_label(1));
-    right_boundary = y(x == class_label(end));
-
-    % left_boundary
-    x1 = class_label(1)*ones(size(left_boundary));
-    y1 = left_boundary;
-
-    % right_boundary
-    x2 = class_label(end)*ones(size(right_boundary));
-    y2 = right_boundary;
-
-    % top boundary
-    x3 = class_label;
-    y3 = upper_boundary;
-
-    % bottom boundary
-    x4 = class_label;
-    y4 = lower_boundary;
-
-    x_out = [x1(:);x2(:);x3(:);x4(:);];
-    y_out = [y1(:);y2(:);y3(:);y4(:);];
+    if class_label > 1
+        left_boundary = y(x == class_label(1));
+        right_boundary = y(x == class_label(end));
+    
+        % left_boundary
+        x1 = class_label(1)*ones(size(left_boundary));
+        y1 = left_boundary;
+    
+        % right_boundary
+        x2 = class_label(end)*ones(size(right_boundary));
+        y2 = right_boundary;
+    
+        % top boundary
+        x3 = class_label;
+        y3 = upper_boundary;
+    
+        % bottom boundary
+        x4 = class_label;
+        y4 = lower_boundary;
+    
+        x_out = [x1(:);x2(:);x3(:);x4(:);];
+        y_out = [y1(:);y2(:);y3(:);y4(:);];
+    else
+        x_out = -1;
+        y_out = -1;
+    end
 
 end

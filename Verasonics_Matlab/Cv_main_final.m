@@ -6,7 +6,9 @@ rosshutdown;
 
 rosinit
 
-bluetoothObj = BluetoothClient();  
+
+
+%bluetoothObj = BluetoothClient();  
 control_var = 0;
 PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
 k = 1; t1=0;
@@ -14,6 +16,11 @@ tic;
 while 1
 PAIMG_msg = receive(PAIMG_sub);
 PAIMG = PAIMG_msg.Data;
+
+data = load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Needeless_Test_data(p_data)\Pdata_acquisition1.mat');
+info = whos('-file', 'C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Needeless_Test_data(p_data)\Pdata_acquisition1.mat');
+disp(info);
+
 
 PAIMG0 = reshape(PAIMG,570,500);
 % matrix_sum = sum(PAIMG0);
@@ -27,7 +34,13 @@ PAIMG2 = db(PAIMG1);
 
 imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
 
+
 colormap gray
+drawnow
+t = toc;
+fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
+k = k+1;
+t1 = t;
 
 
 %1 or 2 not sure
@@ -40,13 +53,18 @@ inpict = PAIMG2;
 % cstart = cols *0.1;
 % cend = cols * 0.8;
 
-rstart = 400;%was 300
-rend =700;%was800
-cstart = 300;
-cend = 1000;
+rstart = 100;%was 300
+rend =500;%was800
+cstart = 100;
+cend = 500;
 ROI_image = ROI_creation(inpict,rstart,rend,cstart,cend);
 
 inpict = ROI_image;
+
+imagesc(ROI_image);
+
+
+
 inpict = inpict - mean(inpict,2);
 
 % low pass elliptical filering of the input image (to remove further the
@@ -66,9 +84,10 @@ spec_img = spec_img.*f;
 % generated backward the output image by inverse fft
 outpict = real(ifft2(ifftshift(spec_img)));
 
-figure
-subplot(2,1,1),imshow(inpict)
-subplot(2,1,2),imshow(outpict)
+%figure
+%subplot(2,1,1),imshow(inpict)
+%subplot(2,1,2),imshow(outpict)
+
 
 
 %outpic is blurred 
@@ -78,83 +97,89 @@ subplot(2,1,2),imshow(outpict)
 binaryImage = outpict > 0.4*max(outpict(:)); 
 
 % Display the binary image
-figure;
-imshow(binaryImage);
-title('Binary Image (White Segments)');
-hold on;
+%figure;
+%imshow(binaryImage);
+%title('Binary Image (White Segments)');
+%hold on;
+%drawnow;
 
 % find the boundary points
 %gets non-zero points in a list y x which are vectors
 [y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
-%calculate teh boundery points from points found
+%calculate the boundery points from points found
+
 [y_selec,x_selec] = myboundary(y,x);
-%draw around found boundry points
-plot(x,y, '.', x_selec, y_selec, '.r')
-title('Boundary points Highlighted');
+if y_selec == -1 
+    disp("not found!")
+else
 
-%find the avg pix values for the threshold values
-pixelValues = inpict(sub2ind(size(binaryImage), y, x));
-avgPixelValue = mean(pixelValues);
-disp("avg pix val: " + avgPixelValue)
-%maybe find a way to keep track of time
-if avgPixelValue < .3 && control_var < 5
-    bluetoothObj.stepF;
-    control_var = control_var + 1;
-elseif avgPixelValue < .3 && control_var < 10
-    bluetoothObj.stepB;
-    control_var = control_var + 1;
-elseif avgPixelValue < .3 && control_var > 10
-    bluetoothObj.sweep
-    control_var = 0;
-end
-
-% last round !!!
-% let say we don't want to keep line objects with width > tol (in pixels)
-tol = 0.03*sze(2); % here the tol is 3% of the picture width
-[y_selec_unic,ia,ic] = unique(y_selec);
-                   
-% "scroll" the image along the y direction and look for narrow  profiles 
-
-m = 0;  
-for k = 1:numel(y_selec_unic)
-    ind = ic == k;
-    x_selected = x_selec(ind);
-    dx = max(x_selected) - min(x_selected);
-    if dx < tol % we keep it
-        m = m+1;
-        yfinal(m) = y_selec_unic(k);
-        xfinal(m) = mean(x_selected);
+    %draw around found boundry points
+    plot(x,y, '.', x_selec, y_selec, '.r')
+    title('Boundary points Highlighted');
+    
+    %find the avg pix values for the threshold values
+    pixelValues = inpict(sub2ind(size(binaryImage), y, x));
+    avgPixelValue = mean(pixelValues);
+    disp("avg pix val: " + avgPixelValue)
+    
+    
+    %maybe find a way to keep track of time
+    %if avgPixelValue < .3 && control_var < 5
+    %    bluetoothObj.stepF;
+    %    control_var = control_var + 1;
+    %elseif avgPixelValue < .3 && control_var < 10
+    %    bluetoothObj.stepB;
+    %    control_var = control_var + 1;
+    %elseif avgPixelValue < .3 && control_var > 10
+    %    bluetoothObj.sweep
+    %    control_var = 0;
+    %end
+    
+    % last round !!!
+    % let say we don't want to keep line objects with width > tol (in pixels)
+    tol = 0.03*sze(2); % here the tol is 3% of the picture width
+    [y_selec_unic,ia,ic] = unique(y_selec);
+                       
+    % "scroll" the image along the y direction and look for narrow  profiles 
+    
+    m = 0;  
+    for k = 1:numel(y_selec_unic)
+        ind = ic == k;
+        x_selected = x_selec(ind);
+        dx = max(x_selected) - min(x_selected);
+        if dx < tol % we keep it
+            m = m+1;
+            yfinal(m) = y_selec_unic(k);
+            xfinal(m) = mean(x_selected);
+        end
     end
+    
+    % return
+    %tmp = abs(diff(xfinal));
+    %ind = find(tmp>0.1*max(tmp));
+    %[v,ii] = max(diff(ind));
+    %iii = ind(ii):ind(ii+1);
+    %xxx = xfinal(iii);
+    %yyy = yfinal(iii);
+    
+    %plot(xxx, yyy, 'dg')
+    %hold off;
+    
+    
+    %% FINAL PLOT !!!!!!!!!
+    
+    figure
+    imshow(inpict)
+    hold on 
+    plot(xxx, yyy, '.r')
+    hold off;
+    drawnow;
+
+    toc
 end
 
-% return
-tmp = abs(diff(xfinal));
-ind = find(tmp>0.1*max(tmp));
-[v,ii] = max(diff(ind));
-iii = ind(ii):ind(ii+1);
-xxx = xfinal(iii);
-yyy = yfinal(iii);
-
-plot(xxx, yyy, 'dg')
-hold off;
 
 
-%% FINAL PLOT !!!!!!!!!
-figure
-imshow(inpict)
-hold on 
-plot(xxx, yyy, '.r')
-hold off;
-toc
-
-
-
-
-% drawnow
-t = toc;
-fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
-k = k+1;
-t1 = t;
 
 
 end

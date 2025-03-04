@@ -3,13 +3,25 @@ data = load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion
 info = whos('-file', 'C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Needeless_Test_data(p_data)\Pdata_acquisition1.mat');
 disp(info);
 
-rstart = 100;%was 300
-rend =500;%was800
-cstart = 100;
-cend = 500;
-ROI_image = ROI_creation(data,rstart,rend,cstart,cend);
+PAIMG0 = reshape(data.p_data,570,500);
+PAIMG1 = PAIMG0./max(PAIMG0(:));
+PAIMG2 = db(PAIMG1);
+colormap gray
+imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
 
-imagesc(ROI_image)
+
+
+
+
+rstart = 100;%was 300
+rend =400;%was800
+cstart = 100;
+cend = 400;
+img3 = ROI_creation(img2,rstart,rend,cstart,cend);
+
+imshow(img3);% ROI_image = ROI_creation(data,rstart,rend,cstart,cend);
+
+% imagesc(ROI_image);
 
 
 function ROI_image = ROI_creation(source_image, row_start, row_end, col_start, col_end)

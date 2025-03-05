@@ -75,7 +75,15 @@ void processCommand(char command) {
                 stepper.stop(); // Stop current movement
             }
             break;
-            
+        case 'R':
+            stepper.moveTo(30);
+            SerialBT.println("Full Right");
+            break;
+        case 'L':            
+            stepper.moveTo(0);
+            SerialBT.println("Full Left");
+            break;
+
         case '+': // Increase manual step size
             manualSteps++;
             SerialBT.print("Manual step size: ");
@@ -98,7 +106,6 @@ void processCommand(char command) {
 
 void runSweep() {
     static bool sweepDirection = true; // true = clockwise, false = counterclockwise
-    
     // If we've reached the target position
     if (stepper.distanceToGo() == 0) {
         if (sweepDirection) {

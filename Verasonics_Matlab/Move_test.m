@@ -7,4 +7,4 @@
 
 bluetoothObj = BluetoothClient();  
 
-bluetoothObj.sweep
+bluetoothObj.fullRight

@@ -12,7 +12,7 @@ classdef BluetoothClient
     
     methods
         function obj = BluetoothClient()
-            obj.Device = bluetooth("Ultrasound Device");
+            obj.Device = bluetooth("Ultrasound Device MQP");
             fprintf('Connected to device!\n');
         end
 
@@ -29,6 +29,12 @@ classdef BluetoothClient
         % Steps the stepper backwards
         function stepB(obj)
             obj.Device.write("B")
+        end
+        function fullRight(obj)
+            obj.Device.write("R")
+        end
+        function fullLeft(obj)
+            obj.Device.write("L")
         end
     end
 end

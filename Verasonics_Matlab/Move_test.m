@@ -1,10 +1,18 @@
-% addpath('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\BluetoothClient.m');
+
 
 
 %testing the movment
 
 % bluetoothlist
 
-bluetoothObj = BluetoothClient();  
+% bluetoothObj = BluetoothClient();  
 
 bluetoothObj.fullRight
+pause(5)
+disp("ready");
+for i = 1:30
+fprintf('value of x: %d\n', i); 
+bluetoothObj.stepB
+disp("next step")
+pause(1)
+end

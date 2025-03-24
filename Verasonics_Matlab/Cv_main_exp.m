@@ -11,7 +11,8 @@ rosinit
 bluetoothObj = BluetoothClient();  
 
 control_var = 0;
-PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
+PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray')
+%check the buffer size
 k = 1; t1=0;
 tic;
 while 1
@@ -25,6 +26,7 @@ PAIMG = PAIMG_msg.Data;
 % data = load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Needeless_Test_data(p_data)\Pdata_acquisition1.mat');
 % info = whos('-file', 'C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Needeless_Test_data(p_data)\Pdata_acquisition1.mat');
 % disp(info);
+
 
 
 PAIMG0 = reshape(PAIMG,570,500);
@@ -55,12 +57,12 @@ inpict = PAIMG2;
 
 
 rstart = 100;%was 300
-rend =500;%was800
+rend =470;%was800
 cstart = 100;
-cend = 500;
+cend = 400;
 
 bluetoothObj.fullRight;
-print("move to the Right");
+disp("move to the Right");
 
 %FOR LOOP
 for i = 1:30
@@ -68,7 +70,7 @@ for i = 1:30
 %have to grab images from in here
 %might desync image sent and image recieve
 
-fprintf('value of x: %d\n', i); 
+fprintf('value of i: %d\n', i); 
 
 
 inpict = PAIMG2;
@@ -193,13 +195,14 @@ else
     toc
 end
 
-    bluetoothObj.back
-    pause(1)
+bluetoothObj.stepB
+disp("next step")
+pause(1)
 
 end
 
 pause(100000)
-print("FIRST SET OVER")
+disp("FIRST SET OVER")
 end
 
 

@@ -3,6 +3,7 @@ tic
 filename = 'needle_tip_sample_2.jpg';
 
 data = load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Data_new\needle1.mat');
+% data = load(filename)
 
 % filename = 'image_needle.jpeg';
 % filename = 'image_needle.jpg';
@@ -10,8 +11,8 @@ inpict = im2double(rgb2gray(imread(filename)));
 
 inpict = data.ImgData;
 PAIMG = inpict;
-% PAIMG0 = reshape(PAIMG,570,500);
-imagesc(PAIMG)
+
+PAIMG0 = reshape(PAIMG,570,500);
 
 
 PAIMG1 = PAIMG0./max(PAIMG0(:));

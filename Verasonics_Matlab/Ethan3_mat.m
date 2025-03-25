@@ -1,42 +1,55 @@
 tic
-% filename = 'needle_tip_sample_1.jpg';
-filename = 'needle_tip_sample_2.jpg';
 
-data = load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\Data_new\needle1.mat');
+% filename = 'needle_tip_sample_2.jpg';
 
-% filename = 'image_needle.jpeg';
-% filename = 'image_needle.jpg';
-inpict = im2double(rgb2gray(imread(filename)));
+load('Data_new\ethan_needle_250225 (1).mat');
+% info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
+data = cell2mat(ImgData);
 
-inpict = data.ImgData;
+% size(data)
+
+% data = squeeze(data);
+data = reshape(data,[size(data,1),size(data,2),size(data,4)]);
+data = mean(data,3);
+
+
+inpict = data;
 PAIMG = inpict;
-% PAIMG0 = reshape(PAIMG,570,500);
-imagesc(PAIMG)
-
-
-PAIMG1 = PAIMG0./max(PAIMG0(:));
+PAIMG1 = data./max(data(:));
 PAIMG2 = db(PAIMG1);
-
-
-imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
+% imagesc(PAIMG2);
+% max(PAIMG1)
+% imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
+colormap gray
 
 
 % remove mean along dimension 2 
-
 % [rows, cols] = size(img);
 % rstart = rows * 0.1;
 % rend =rows *0.8;%was800
 % cstart = cols *0.1;
 % cend = cols * 0.8;
 
-rstart = 350;%was 300
-rend =700;%was800
-cstart = 400;
-cend = 900;
-ROI_image = ROI_creation(inpict,rstart,rend,cstart,cend);
+%ROWS 0-500
+%COL 0-570
+rstart = 150;%was 
+rend = 470;%was800 
+cstart = 100;
+cend = 400;
+ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
+% size(ROI_image)
+
+
 
 inpict = ROI_image;
+
+
+% imagesc(inpict);
+
 inpict = inpict - mean(inpict,2);
+
+% imagesc(inpict,[-50,0])
+
 
 % low pass elliptical filering of the input image (to remove further the
 % salt pepper noise) - adjust filter cut off and order to your own
@@ -59,12 +72,14 @@ figure
 subplot(2,1,1),imshow(inpict)
 subplot(2,1,2),imshow(outpict)
 
+imagesc(outpict)
+
 
 %outpic is blurred 
 
 %% attempt to extract the white segment
 % Threshold the image to create a binary image
-binaryImage = outpict > 0.4*max(outpict(:)); 
+binaryImage = outpict > .3*max(outpict(:)); 
 
 % Display the binary image
 figure;
@@ -77,58 +92,83 @@ hold on;
 [y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
 %calculate teh boundery points from points found
 [y_selec,x_selec] = myboundary(y,x);
-%draw around found boundry points
-plot(x,y, '.', x_selec, y_selec, '.r')
-title('Boundary points Highlighted');
+if y_selec == -1 
+    disp("not found!")
+else
 
-%find the avg pix values for the threshold values
-pixelValues = inpict(sub2ind(size(binaryImage), y, x));
-avgPixelValue = mean(pixelValues);
-disp("avg pix val: " + avgPixelValue)
-
-
-% last round !!!
-% let say we don't want to keep line objects with width > tol (in pixels)
-tol = 0.03*sze(2); % here the tol is 3% of the picture width
-[y_selec_unic,ia,ic] = unique(y_selec);
-                   
-% "scroll" the image along the y direction and look for narrow  profiles 
-
-m = 0;  
-for k = 1:numel(y_selec_unic)
-    ind = ic == k;
-    x_selected = x_selec(ind);
-    dx = max(x_selected) - min(x_selected);
-    if dx < tol % we keep it
-        m = m+1;
-        yfinal(m) = y_selec_unic(k);
-        xfinal(m) = mean(x_selected);
+    %draw around found boundry points
+    plot(x,y, '.', x_selec, y_selec, '.r')
+    title('Boundary points Highlighted');
+    
+    %find the avg pix values for the threshold values
+    pixelValues = inpict(sub2ind(size(binaryImage), y, x));
+    avgPixelValue = mean(pixelValues);
+    disp("avg pix val: " + avgPixelValue)
+    
+    
+    %maybe find a way to keep track of time
+    %if avgPixelValue < .3 && control_var < 5
+    %    bluetoothObj.stepF;
+    %    control_var = control_var + 1;
+    %elseif avgPixelValue < .3 && control_var < 10
+    %    bluetoothObj.stepB;
+    %    control_var = control_var + 1;
+    %elseif avgPixelValue < .3 && control_var > 10
+    %    bluetoothObj.sweep
+    %    control_var = 0;
+    %end
+    
+    % last round !!!
+    % let say we don't want to keep line objects with width > tol (in pixels)
+    tol = 0.03*sze(2); % here the tol is 3% of the picture width
+    [y_selec_unic,ia,ic] = unique(y_selec);
+                       
+    % "scroll" the image along the y direction and look for narrow  profiles 
+    
+    m = 0;  
+    for k = 1:numel(y_selec_unic)
+        ind = ic == k;
+        x_selected = x_selec(ind);
+        dx = max(x_selected) - min(x_selected);
+        if dx < tol % we keep it
+            m = m+1;
+            yfinal(m) = y_selec_unic(k);
+            xfinal(m) = mean(x_selected);
+        end
     end
+    
+    % return
+    %tmp = abs(diff(xfinal));
+    %ind = find(tmp>0.1*max(tmp));
+    %[v,ii] = max(diff(ind));
+    %iii = ind(ii):ind(ii+1);
+    %xxx = xfinal(iii);
+    %yyy = yfinal(iii);
+    
+    %plot(xxx, yyy, 'dg')
+    %hold off;
+    
+    
+    %% FINAL PLOT !!!!!!!!!
+    
+    figure
+    imshow(inpict)
+    hold on 
+    plot(xxx, yyy, '.r')
+    hold off;
+    drawnow;
+
+    toc
 end
 
-% return
 
 
-tmp = abs(diff(xfinal));
-ind = find(tmp>0.1*max(tmp));
-[v,ii] = max(diff(ind));
-iii = ind(ii):ind(ii+1);
-xxx = xfinal(iii);
-yyy = yfinal(iii);
-
-plot(xxx, yyy, 'dg')
-hold off;
 
 
-%% FINAL PLOT !!!!!!!!!
 
-figure
-imshow(inpict)
-hold on 
-plot(xxx, yyy, '.r')
-hold off;
 
-toc
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function varargout = EFilter(sze, cutoffM, cutoffm, n, varargin)

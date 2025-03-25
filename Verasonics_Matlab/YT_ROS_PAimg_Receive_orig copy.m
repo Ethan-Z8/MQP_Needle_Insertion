@@ -24,13 +24,8 @@ PAIMG0 = reshape(PAIMG,570,500);
 PAIMG1 = PAIMG0./max(PAIMG0(:));
 PAIMG2 = db(PAIMG1);
 
-
 imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
-
 colormap gray
-
-
-
 % drawnow
 t = toc;
 fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])

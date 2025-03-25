@@ -65,6 +65,7 @@ bluetoothObj.fullRight;
 disp("move to the Right");
 
 %FOR LOOP
+
 for i = 1:30
 
 %have to grab images from in here

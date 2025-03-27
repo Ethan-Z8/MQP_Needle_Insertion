@@ -16,11 +16,17 @@ data = mean(data,3);
 inpict = data;
 PAIMG = inpict;
 PAIMG1 = data./max(data(:));
-PAIMG2 = db(PAIMG1);
+% PAIMG2 = db(PAIMG1);
+PAIMG2 = 10 * log10(PAIMG1 + eps);  % eps prevents log10(0)
+
+%
+
+
+
 % imagesc(PAIMG2);
 % max(PAIMG1)
-imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
 colormap gray
+
 
 
 
@@ -52,11 +58,15 @@ inpict = ROI_image;
 % imagesc(inpict);
 
 inpict = inpict - mean(inpict,2);
+% inpict = mat2gray(inpict);
 
 
-imagesc(inpict)
-title("inpict")
-hold on
+% imagesc(inpict)
+% title("inpict")
+% hold on
+% imshow(inpict);
+% max(inpict)
+
 
 
 % low pass elliptical filering of the input image (to remove further the
@@ -71,10 +81,10 @@ spec_img = fftshift(fft2(inpict));
 
 
 sze = size(spec_img);
-cutoff1 = 0.5;
-cutoff2 = 0.05;
+cutoffM = 0.65;
+cutoffm = 0.35;     
 n = 6;
-f = EFilter(sze, cutoff1, cutoff2, n);
+f = EFilter(sze, cutoffM, cutoffm, n);
 
 % apply filter
 spec_img = spec_img.*f;
@@ -89,91 +99,91 @@ subplot(2,1,2),imshow(outpict)
 % imagesc(outpict)
 
 
-%outpic is blurred 
+% %outpic is blurred 
 
-%% attempt to extract the white segment
-% Threshold the image to create a binary image
-binaryImage = outpict > .3*max(outpict(:)); 
+% %% attempt to extract the white segment
+% % Threshold the image to create a binary image
+% binaryImage = outpict > .3*max(outpict(:)); 
 
-% Display the binary image
-figure;
-imshow(binaryImage);
-title('Binary Image (White Segments)');
-hold on;
+% % Display the binary image
+% figure;
+% imshow(binaryImage);
+% title('Binary Image (White Segments)');
+% hold on;
 
-% find the boundary points
-%gets non-zero points in a list y x which are vectors
-[y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
-%calculate teh boundery points from points found
-[y_selec,x_selec] = myboundary(y,x);
-if y_selec == -1 
-    disp("not found!")
-else
+% % find the boundary points
+% %gets non-zero points in a list y x which are vectors
+% [y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
+% %calculate teh boundery points from points found
+% [y_selec,x_selec] = myboundary(y,x);
+% if y_selec == -1 
+%     disp("not found!")
+% else
 
-    %draw around found boundry points
-    plot(x,y, '.', x_selec, y_selec, '.r')
-    title('Boundary points Highlighted');
+%     %draw around found boundry points
+%     plot(x,y, '.', x_selec, y_selec, '.r')
+%     title('Boundary points Highlighted');
     
-    %find the avg pix values for the threshold values
-    pixelValues = inpict(sub2ind(size(binaryImage), y, x));
-    avgPixelValue = mean(pixelValues);
-    disp("avg pix val: " + avgPixelValue)
+%     %find the avg pix values for the threshold values
+%     pixelValues = inpict(sub2ind(size(binaryImage), y, x));
+%     avgPixelValue = mean(pixelValues);
+%     disp("avg pix val: " + avgPixelValue)
     
     
-    %maybe find a way to keep track of time
-    %if avgPixelValue < .3 && control_var < 5
-    %    bluetoothObj.stepF;
-    %    control_var = control_var + 1;
-    %elseif avgPixelValue < .3 && control_var < 10
-    %    bluetoothObj.stepB;
-    %    control_var = control_var + 1;
-    %elseif avgPixelValue < .3 && control_var > 10
-    %    bluetoothObj.sweep
-    %    control_var = 0;
-    %end
+%     %maybe find a way to keep track of time
+%     %if avgPixelValue < .3 && control_var < 5
+%     %    bluetoothObj.stepF;
+%     %    control_var = control_var + 1;
+%     %elseif avgPixelValue < .3 && control_var < 10
+%     %    bluetoothObj.stepB;
+%     %    control_var = control_var + 1;
+%     %elseif avgPixelValue < .3 && control_var > 10
+%     %    bluetoothObj.sweep
+%     %    control_var = 0;
+%     %end
     
-    % last round !!!
-    % let say we don't want to keep line objects with width > tol (in pixels)
-    tol = 0.03*sze(2); % here the tol is 3% of the picture width
-    [y_selec_unic,ia,ic] = unique(y_selec);
+%     % last round !!!
+%     % let say we don't want to keep line objects with width > tol (in pixels)
+%     tol = 0.03*sze(2); % here the tol is 3% of the picture width
+%     [y_selec_unic,ia,ic] = unique(y_selec);
                        
-    % "scroll" the image along the y direction and look for narrow  profiles 
+%     % "scroll" the image along the y direction and look for narrow  profiles 
     
-    m = 0;  
-    for k = 1:numel(y_selec_unic)
-        ind = ic == k;
-        x_selected = x_selec(ind);
-        dx = max(x_selected) - min(x_selected);
-        if dx < tol % we keep it
-            m = m+1;
-            yfinal(m) = y_selec_unic(k);
-            xfinal(m) = mean(x_selected);
-        end
-    end
+%     m = 0;  
+%     for k = 1:numel(y_selec_unic)
+%         ind = ic == k;
+%         x_selected = x_selec(ind);
+%         dx = max(x_selected) - min(x_selected);
+%         if dx < tol % we keep it
+%             m = m+1;
+%             yfinal(m) = y_selec_unic(k);
+%             xfinal(m) = mean(x_selected);
+%         end
+%     end
     
-    % return
-    %tmp = abs(diff(xfinal));
-    %ind = find(tmp>0.1*max(tmp));
-    %[v,ii] = max(diff(ind));
-    %iii = ind(ii):ind(ii+1);
-    %xxx = xfinal(iii);
-    %yyy = yfinal(iii);
+%     % return
+%     %tmp = abs(diff(xfinal));
+%     %ind = find(tmp>0.1*max(tmp));
+%     %[v,ii] = max(diff(ind));
+%     %iii = ind(ii):ind(ii+1);
+%     %xxx = xfinal(iii);
+%     %yyy = yfinal(iii);
     
-    %plot(xxx, yyy, 'dg')
-    %hold off;
+%     %plot(xxx, yyy, 'dg')
+%     %hold off;
     
     
-    %% FINAL PLOT !!!!!!!!!
+%     %% FINAL PLOT !!!!!!!!!
     
-    figure
-    imshow(inpict)
-    hold on 
-    plot(xxx, yyy, '.r')
-    hold off;
-    drawnow;
+%     figure
+%     imshow(inpict)
+%     hold on 
+%     plot(xxx, yyy, '.r')
+%     hold off;
+%     drawnow;
 
-    toc
-end
+%     toc
+% end
 
 
 

@@ -4,6 +4,8 @@ tic
 
 load('Data_new\ethan_needle_250225 (1).mat');
 % info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
+
+
 data = cell2mat(ImgData);
 
 % size(data)
@@ -12,14 +14,38 @@ data = cell2mat(ImgData);
 data = reshape(data,[size(data,1),size(data,2),size(data,4)]);
 data = mean(data,3);
 
+% non_zero_arr = data(data ~= 0); % Filter out zeros
+% min(non_zero_arr)
+% max(data(:)) 6.7e+06
+% min(data(:)) 0
+
 
 inpict = data;
 PAIMG = inpict;
 PAIMG1 = data./max(data(:));
-% PAIMG2 = db(PAIMG1);
-PAIMG2 = 10 * log10(PAIMG1 + eps);  % eps prevents log10(0)
+PAIMG2 = db(PAIMG1);
 
-%
+%FLOOR THE IMAGE HERE AND THEN DISPLAY IF VALUE LOWER THAN 
+%ADD FLOOR\ TO ALL NUMBERS AND THEN DEVIDE BY 50
+arr = PAIMG2;
+arr(arr < -50) = -50;
+arr = arr + 50;
+arr = arr / 50;
+imshow(arr);
+
+PAIMG2 = arr;
+
+% PAIMG2 = 10 * log10(PAIMG1 + eps);  % eps prevents log10(0)
+
+min(PAIMG2(:));
+
+
+% c = 1;  % Small constant to avoid log(0)
+% log_image = log(inpict + c);
+% log_image_normalized = mat2gray(log_image);  % Normalize to [0, 1]
+% imshow(log_image_normalized);
+
+
 
 
 
@@ -44,13 +70,11 @@ colormap gray
 %ROWS 0-500
 %COL 0-570
 rstart = 150;%was 
-rend = 470;%was800 
-cstart = 100;
-cend = 400;
+rend = 470;%up to 570 
+cstart = 200;%200
+cend = 300;%300 good
 ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
 % size(ROI_image)
-
-
 
 inpict = ROI_image;
 
@@ -78,11 +102,9 @@ inpict = inpict - mean(inpict,2);
 % K = medfilt
 spec_img = fftshift(fft2(inpict));
 
-
-
 sze = size(spec_img);
-cutoffM = 0.65;
-cutoffm = 0.35;     
+cutoffM = 0.55;
+cutoffm = 0.05;     
 n = 6;
 f = EFilter(sze, cutoffM, cutoffm, n);
 
@@ -101,89 +123,89 @@ subplot(2,1,2),imshow(outpict)
 
 % %outpic is blurred 
 
-% %% attempt to extract the white segment
-% % Threshold the image to create a binary image
-% binaryImage = outpict > .3*max(outpict(:)); 
+%% attempt to extract the white segment
+% Threshold the image to create a binary image
+binaryImage = outpict > .3*max(outpict(:)); 
 
-% % Display the binary image
-% figure;
-% imshow(binaryImage);
-% title('Binary Image (White Segments)');
-% hold on;
+% Display the binary image
+figure;
+imshow(binaryImage);
+title('Binary Image (White Segments)');
+hold on;
 
-% % find the boundary points
-% %gets non-zero points in a list y x which are vectors
-% [y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
-% %calculate teh boundery points from points found
-% [y_selec,x_selec] = myboundary(y,x);
-% if y_selec == -1 
-%     disp("not found!")
-% else
+% find the boundary points
+%gets non-zero points in a list y x which are vectors
+[y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
+%calculate teh boundery points from points found
+[y_selec,x_selec] = myboundary(y,x);
+if y_selec == -1 
+    disp("not found!")
+else
 
-%     %draw around found boundry points
-%     plot(x,y, '.', x_selec, y_selec, '.r')
-%     title('Boundary points Highlighted');
+    %draw around found boundry points
+    plot(x,y, '.', x_selec, y_selec, '.r')
+    title('Boundary points Highlighted');
     
-%     %find the avg pix values for the threshold values
-%     pixelValues = inpict(sub2ind(size(binaryImage), y, x));
-%     avgPixelValue = mean(pixelValues);
-%     disp("avg pix val: " + avgPixelValue)
+    %find the avg pix values for the threshold values
+    pixelValues = inpict(sub2ind(size(binaryImage), y, x));
+    avgPixelValue = mean(pixelValues);
+    disp("avg pix val: " + avgPixelValue)
     
     
-%     %maybe find a way to keep track of time
-%     %if avgPixelValue < .3 && control_var < 5
-%     %    bluetoothObj.stepF;
-%     %    control_var = control_var + 1;
-%     %elseif avgPixelValue < .3 && control_var < 10
-%     %    bluetoothObj.stepB;
-%     %    control_var = control_var + 1;
-%     %elseif avgPixelValue < .3 && control_var > 10
-%     %    bluetoothObj.sweep
-%     %    control_var = 0;
-%     %end
+    %maybe find a way to keep track of time
+    %if avgPixelValue < .3 && control_var < 5
+    %    bluetoothObj.stepF;
+    %    control_var = control_var + 1;
+    %elseif avgPixelValue < .3 && control_var < 10
+    %    bluetoothObj.stepB;
+    %    control_var = control_var + 1;
+    %elseif avgPixelValue < .3 && control_var > 10
+    %    bluetoothObj.sweep
+    %    control_var = 0;
+    %end
     
-%     % last round !!!
-%     % let say we don't want to keep line objects with width > tol (in pixels)
-%     tol = 0.03*sze(2); % here the tol is 3% of the picture width
-%     [y_selec_unic,ia,ic] = unique(y_selec);
+    % last round !!!
+    % let say we don't want to keep line objects with width > tol (in pixels)
+    tol = 0.1*sze(2); % here the tol is 3% of the picture width
+    [y_selec_unic,ia,ic] = unique(y_selec);
                        
-%     % "scroll" the image along the y direction and look for narrow  profiles 
+    % "scroll" the image along the y direction and look for narrow  profiles 
     
-%     m = 0;  
-%     for k = 1:numel(y_selec_unic)
-%         ind = ic == k;
-%         x_selected = x_selec(ind);
-%         dx = max(x_selected) - min(x_selected);
-%         if dx < tol % we keep it
-%             m = m+1;
-%             yfinal(m) = y_selec_unic(k);
-%             xfinal(m) = mean(x_selected);
-%         end
-%     end
+    m = 0;  
+    for k = 1:numel(y_selec_unic)
+        ind = ic == k;
+        x_selected = x_selec(ind);
+        dx = max(x_selected) - min(x_selected);
+        if dx < tol % we keep it
+            m = m+1;
+            yfinal(m) = y_selec_unic(k);
+            xfinal(m) = mean(x_selected);
+        end
+    end
     
-%     % return
-%     %tmp = abs(diff(xfinal));
-%     %ind = find(tmp>0.1*max(tmp));
-%     %[v,ii] = max(diff(ind));
-%     %iii = ind(ii):ind(ii+1);
-%     %xxx = xfinal(iii);
-%     %yyy = yfinal(iii);
+    % return
+    tmp = abs(diff(xfinal));
+    ind = find(tmp>0.1*max(tmp));
+    [v,ii] = max(diff(ind));
+    iii = ind(ii):ind(ii+1);
+    xxx = xfinal(iii);
+    yyy = yfinal(iii);
     
-%     %plot(xxx, yyy, 'dg')
-%     %hold off;
+    plot(xxx, yyy, 'dg')
+    hold off;
     
     
-%     %% FINAL PLOT !!!!!!!!!
+    %% FINAL PLOT !!!!!!!!!
     
-%     figure
-%     imshow(inpict)
-%     hold on 
-%     plot(xxx, yyy, '.r')
-%     hold off;
-%     drawnow;
+    figure
+    imshow(inpict)
+    hold on 
+    plot(xxx, yyy, '.r')
+    hold off;
+    drawnow;
 
-%     toc
-% end
+    toc
+end
 
 
 

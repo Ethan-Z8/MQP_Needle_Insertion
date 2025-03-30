@@ -59,6 +59,13 @@ title("inpict")
 hold on
 
 
+
+
+
+
+
+
+
 % low pass elliptical filering of the input image (to remove further the
 % salt pepper noise) - adjust filter cut off and order to your own
 % preferences

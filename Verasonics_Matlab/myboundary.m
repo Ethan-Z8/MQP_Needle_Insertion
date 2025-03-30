@@ -7,11 +7,10 @@ function [x_selec,y_selec] = myboundary(x,y)
     [y_out2,x_out2] = tight_boundary(y,x);
 
     
-    if x_out == -1 && y_out == -1
+    if x_out == -1
         x_selec = -1;
         y_selec = -1;
     else
-
     % find unique x , y pairs 
     xx = [x_out(:);x_out2(:)];
     yy = [y_out(:);y_out2(:)];

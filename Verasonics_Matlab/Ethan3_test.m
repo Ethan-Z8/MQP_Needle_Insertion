@@ -2,7 +2,10 @@ tic
 
 % filename = 'needle_tip_sample_2.jpg';
 
-load('Data_new\ethan_needle_250225 (1).mat');
+% load('Data_new\ethan_needle_250225 (1).mat');
+load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_10.mat');
+
+
 % info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
 
 
@@ -70,7 +73,7 @@ colormap gray
 %ROWS 0-500
 %COL 0-570
 rstart = 150;%was 
-rend = 470;%up to 570 
+rend = 450;%up to 570 
 cstart = 200;%200
 cend = 300;%300 good
 ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
@@ -125,7 +128,7 @@ subplot(2,1,2),imshow(outpict)
 
 %% attempt to extract the white segment
 % Threshold the image to create a binary image
-binaryImage = outpict > .3*max(outpict(:)); 
+binaryImage = outpict > .4*max(outpict(:)); 
 
 % Display the binary image
 figure;
@@ -166,7 +169,7 @@ else
     
     % last round !!!
     % let say we don't want to keep line objects with width > tol (in pixels)
-    tol = 0.1*sze(2); % here the tol is 3% of the picture width
+    tol = 0.08*sze(2); % here the tol is 3% of the picture width
     [y_selec_unic,ia,ic] = unique(y_selec);
                        
     % "scroll" the image along the y direction and look for narrow  profiles 

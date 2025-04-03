@@ -3,7 +3,7 @@ tic
 % filename = 'needle_tip_sample_2.jpg';
 
 % load('Data_new\ethan_needle_250225 (1).mat');
-load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_10.mat');
+load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_5.mat');
 
 
 % info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
@@ -169,7 +169,7 @@ else
     
     % last round !!!
     % let say we don't want to keep line objects with width > tol (in pixels)
-    tol = 0.08*sze(2); % here the tol is 3% of the picture width
+    tol = 0.01*sze(2); % here the tol is x% of the picture width
     [y_selec_unic,ia,ic] = unique(y_selec);
                        
     % "scroll" the image along the y direction and look for narrow  profiles 
@@ -194,7 +194,8 @@ else
     xxx = xfinal(iii);
     yyy = yfinal(iii);
     
-    plot(xxx, yyy, 'dg')
+    plot(xxx, yyy, 'dg') %check
+    
     hold off;
     
     

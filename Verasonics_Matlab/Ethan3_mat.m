@@ -2,7 +2,8 @@ tic
 
 % filename = 'needle_tip_sample_2.jpg';
 
-load('Data_new\ethan_needle_250225 (1).mat');
+%load('Data_new\ethan_needle_250225 (1).mat');
+load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_5.mat');
 % info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
 data = cell2mat(ImgData);
 
@@ -23,7 +24,13 @@ imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
 colormap gray
 
 
+arr = PAIMG2;
+arr(arr < -50) = -50;
+arr = arr + 50;
+arr = arr / 50;
+imshow(arr);
 
+PAIMG2 = arr;
 
 
 
@@ -38,9 +45,9 @@ colormap gray
 %ROWS 0-500
 %COL 0-570
 rstart = 150;%was 
-rend = 470;%was800 
-cstart = 100;
-cend = 400;
+rend = 470;%up to 570 
+cstart = 200;%200
+cend = 300;%300 good
 ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
 % size(ROI_image)
 
@@ -100,7 +107,7 @@ subplot(2,1,2),imshow(outpict)
 
 %% attempt to extract the white segment
 % Threshold the image to create a binary image
-binaryImage = outpict > .3*max(outpict(:)); 
+binaryImage = outpict > .5*max(outpict(:)); 
 
 % Display the binary image
 figure;
@@ -141,7 +148,7 @@ else
     
     % last round !!!
     % let say we don't want to keep line objects with width > tol (in pixels)
-    tol = 0.03*sze(2); % here the tol is 3% of the picture width
+    tol = 0.1*sze(2); % here the tol is 3% of the picture width
     [y_selec_unic,ia,ic] = unique(y_selec);
                        
     % "scroll" the image along the y direction and look for narrow  profiles 
@@ -151,11 +158,14 @@ else
         ind = ic == k;
         x_selected = x_selec(ind);
         dx = max(x_selected) - min(x_selected);
-        if dx < tol % we keep it
-            m = m+1;
-            yfinal(m) = y_selec_unic(k);
-            xfinal(m) = mean(x_selected);
-        end
+
+        yfinal(k) = y_selec_unic(k);
+        xfinal(k) = mean(x_selected);
+        % if dx < tol % we keep it
+        %     m = m+1;
+        %     yfinal(m) = y_selec_unic(k);
+        %     xfinal(m) = mean(x_selected);
+        % end
     end
     
     % return

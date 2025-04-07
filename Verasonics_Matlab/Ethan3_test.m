@@ -1,10 +1,10 @@
 tic
 
 % filename = 'needle_tip_sample_2.jpg';
-
-% load('Data_new\ethan_needle_250225 (1).mat');
-load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_5.mat');
-
+%load('Data_new\ethan_needle_250225 (1).mat');
+load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_9.mat');
+%5 and 8 are messiest
+%bug on image 10 that creates a very low yfinal point for some reason
 
 % info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
 
@@ -49,9 +49,6 @@ min(PAIMG2(:));
 % imshow(log_image_normalized);
 
 
-
-
-
 % imagesc(PAIMG2);
 % max(PAIMG1)
 colormap gray
@@ -73,7 +70,7 @@ colormap gray
 %ROWS 0-500
 %COL 0-570
 rstart = 150;%was 
-rend = 450;%up to 570 
+rend = 470;%up to 570 
 cstart = 200;%200
 cend = 300;%300 good
 ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
@@ -106,7 +103,7 @@ inpict = inpict - mean(inpict,2);
 spec_img = fftshift(fft2(inpict));
 
 sze = size(spec_img);
-cutoffM = 0.55;
+cutoffM = 0.35;
 cutoffm = 0.05;     
 n = 6;
 f = EFilter(sze, cutoffM, cutoffm, n);
@@ -120,6 +117,7 @@ outpict = real(ifft2(ifftshift(spec_img)));
 figure
 subplot(2,1,1),imshow(inpict)
 subplot(2,1,2),imshow(outpict)
+drawnow;
 
 % imagesc(outpict)
 
@@ -128,26 +126,31 @@ subplot(2,1,2),imshow(outpict)
 
 %% attempt to extract the white segment
 % Threshold the image to create a binary image
-binaryImage = outpict > .4*max(outpict(:)); 
+binaryImage = outpict > .5 * max(outpict(:)); 
 
 % Display the binary image
 figure;
 imshow(binaryImage);
 title('Binary Image (White Segments)');
 hold on;
+drawnow;
+
+% pause(15);
+
+
 
 % find the boundary points
 %gets non-zero points in a list y x which are vectors
-[y,x] = ind2sub(size(binaryImage),find(binaryImage>0.5));
+[y,x] = ind2sub(size(binaryImage),find(binaryImage > 0.5));
 %calculate teh boundery points from points found
 [y_selec,x_selec] = myboundary(y,x);
 if y_selec == -1 
     disp("not found!")
 else
-
     %draw around found boundry points
     plot(x,y, '.', x_selec, y_selec, '.r')
     title('Boundary points Highlighted');
+    drawnow;
     
     %find the avg pix values for the threshold values
     pixelValues = inpict(sub2ind(size(binaryImage), y, x));
@@ -169,46 +172,119 @@ else
     
     % last round !!!
     % let say we don't want to keep line objects with width > tol (in pixels)
-    tol = 0.01*sze(2); % here the tol is x% of the picture width
+    tol_m = .001 * sze(2); % here the tol is x% of the picture width
+    tol_m = 30;
+    % tol_M =  0.1*sze(2);
     [y_selec_unic,ia,ic] = unique(y_selec);
-                       
+
+    % plot(100,y_selec_unic,".r");    
     % "scroll" the image along the y direction and look for narrow  profiles 
     
     m = 0;  
     for k = 1:numel(y_selec_unic)
-        ind = ic == k;
+        ind = ic == k;%check indiciy of where that unique y value is in the ic(in the original y_selec matrix)
         x_selected = x_selec(ind);
+        % disp(k);
+        
+        % disp("yvalue :" )
+        % disp(y_selec(ind))
+        % disp("xvalues :" )
+        % disp(x_selec(ind))
         dx = max(x_selected) - min(x_selected);
-        if dx < tol % we keep it
-            m = m+1;
+        if dx < tol_m %|| dx > tol_M% we keep 
+            m = m + 1;
             yfinal(m) = y_selec_unic(k);
-            xfinal(m) = mean(x_selected);
+            xfinal(m) = mean(x_selected);% or make this mean of max min or whatever we end up deciding
+        end
+    end
+
+
+    y = 0;
+    % length(yfinal)
+    % numel(yfinal)
+    % numel(yfinal) - 1
+    new_y_final = yfinal;
+    new_x_final = xfinal;
+    % plot(xfinal,yfinal);
+
+
+
+
+    for i = 1:(numel(yfinal) - 1)
+        x  = i - y;
+        current_y = yfinal(x);
+        next_y = yfinal(i+1);
+
+        % current_x = xfinal(x);
+        % next_x = xfinal(i+1);
+        % abs(current_x - next_x)
+        if (next_y - current_y) > 15%check dist
+            % numel(yfinal);
+            new_y_final(i+1-y) = [];
+            new_x_final(i+1-y) = [];
+            y = y + 1 ;
         end
     end
     
+    % p = polyfit(new_x_final, new_y_final, 0);
+    % y_fit = polyval(p, x);
+    % y_fit = polyval(p, x);
+    plot(new_x_final,new_y_final);
+
+    % for k -> num of elements in y_selec_uniq
+        %get the y value y_val = y_sekec_unic(k)
+        %get largest and smallest x vals corrasponding to that y val(thats why x selected does)
+        %subtract abs val - dx
+
+
+    % m = 0;  
+    % % disp(numel(y_selec_unic))
+    % for k = 1:numel(y_selec_unic)
+    %     ind = ic == k;
+    %     x_selected = x_selec(ind);
+    %     dx = max(x_selected) - min(x_selected);
+    %     if dx < tol_m %|| dx > tol_M% we keep 
+    %         m = m + 1;
+    %         yfinal(m) = y_selec_unic(k);
+    %         xfinal(m) = mean(x_selected);
+    %     end
+    % end
+    % plot(xfinal,yfinal)
+    % title(':test')
+    % disp("a")
+    
+
+
     % return
-    tmp = abs(diff(xfinal));
-    ind = find(tmp>0.1*max(tmp));
+    tmp = abs(diff(new_x_final));
+    ind = find(tmp>0.2*max(tmp));%make temp higher.
     [v,ii] = max(diff(ind));
     iii = ind(ii):ind(ii+1);
-    xxx = xfinal(iii);
-    yyy = yfinal(iii);
+    xxx = new_x_final(iii);
+    yyy = new_y_final(iii);
     
-    plot(xxx, yyy, 'dg') %check
+    %plot(xxx, yyy, 'dg') %check
     
     hold off;
     
     
     %% FINAL PLOT !!!!!!!!!
     
+    % figure
+    % imshow(inpict)
+    % hold on 
+    % plot(xxx, yyy, '.r')
+    % hold off;
+    % drawnow;
     figure
     imshow(inpict)
     hold on 
-    plot(xxx, yyy, '.r')
+    plot(new_x_final,  new_y_final, '.r')
     hold off;
     drawnow;
 
     toc
+    
 end
 
 
@@ -344,3 +420,38 @@ function ROI_image = ROI_creation(source_image, row_start, row_end, col_start, c
         end
     end
 end
+
+%if avgPixelValue < .3 && control_var < 5
+%    bluetoothObj.stepF;
+%    control_var = control_var + 1;
+
+%mirrordirection = 0 %backwards
+
+
+
+%if score == 0 && recover = 0 && mirror direction == 0
+    %recover = 1
+    %memory  = 0; 
+    %bluetoothObj.stepB
+    %bluetoothObj.stepB
+    %bluetoothObj.stepB
+    %bluetoothObj.stepB
+%if score == 0 && recover = 0 && mirror direction == 1
+    %recover = 1
+    %memory = 0; 
+    %bluetoothObj.stepF
+    %bluetoothObj.stepF
+    %bluetoothObj.stepF
+    %bluetoothObj.stepF
+
+
+%bluetoothObj.stepF
+%memeory++
+%if score != 0
+    %recover = 0;
+    %if memory <= 4 %NEEDLE IS MOVING "BACKWARDS for mirror"
+    %mirrordirection = 0 
+    %memory = 0;
+
+
+

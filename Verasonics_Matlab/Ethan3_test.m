@@ -4,6 +4,7 @@ tic
 %load('Data_new\ethan_needle_250225 (1).mat');
 load('C:\Users\ezhon\OneDrive\Desktop\Git_ultrasound\MQP_Needle_Insertion\ethan_data_250324\ethan_0324_9.mat');
 %5 and 8 are messiest
+%good for 9
 %bug on image 10 that creates a very low yfinal point for some reason
 
 % info = whos('-file', 'Data_new/ethan_needle_250225 (1).mat')
@@ -71,8 +72,8 @@ colormap gray
 %COL 0-570
 rstart = 150;%was 
 rend = 470;%up to 570 
-cstart = 200;%200
-cend = 300;%300 good
+cstart = 225;%200
+cend = 275;%300 good
 ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
 % size(ROI_image)
 
@@ -136,8 +137,6 @@ hold on;
 drawnow;
 
 % pause(15);
-
-
 
 % find the boundary points
 %gets non-zero points in a list y x which are vectors
@@ -230,6 +229,7 @@ else
     % y_fit = polyval(p, x);
     % y_fit = polyval(p, x);
     plot(new_x_final,new_y_final);
+
 
     % for k -> num of elements in y_selec_uniq
         %get the y value y_val = y_sekec_unic(k)

@@ -102,7 +102,6 @@ inpict = inpict - mean(inpict,2);
 
 % K = medfilt
 spec_img = fftshift(fft2(inpict));
-
 sze = size(spec_img);
 cutoffM = 0.35;
 cutoffm = 0.05;     

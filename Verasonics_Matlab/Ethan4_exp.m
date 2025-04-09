@@ -5,6 +5,19 @@ clc
 rosshutdown;
 
 rosinit
+% inpict_res = cell(1:30);
+% final_res = cell(1:30);
+% results = struct;
+
+
+
+% for asdf = 1:30
+%     inpict_res{asdf} =[];
+%     final_res{asdf} = [];
+% end
+
+    
+results = struct;
 
 control_var = 0;
 PAIMG_sub = rossubscriber('PA_IMG', 'std_msgs/Float64MultiArray');
@@ -14,113 +27,57 @@ tic;
 
 
 bluetoothObj = BluetoothClient();
-
-while 1
+% while 1
+disp("in while")
+bluetoothObj.fullRight;
+for i = 1:30
 PAIMG_msg = receive(PAIMG_sub);
 PAIMG = PAIMG_msg.Data;
-    
-
 PAIMG0 = reshape(PAIMG,570,500);
-% matrix_sum = sum(PAIMG0);
-
-% imshow(PAIMG0)
-% image(PAIMG0)
-% imagesc(PAIMG0)
 PAIMG1 = PAIMG0./max(PAIMG0(:));
 PAIMG2 = db(PAIMG1);
-
-
-imagesc(PAIMG2,[-50,0]);% dynamic range -50,0
-
-
+arr = PAIMG2;
+arr(arr < -50) = -50;
+arr = arr + 50;
+arr = arr / 50;
+PAIMG2 = arr;
+imagesc(PAIMG2);% dynamic range -50,0
 colormap gray
 drawnow
 t = toc;
-fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
+% fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
 k = k+1;
 t1 = t;
-
-
 colormap gray
-
-
-
-
-
-
-
-
-% remove mean along dimension 2 
-% [rows, cols] = size(img);
-% rstart = rows * 0.1;
-% rend =rows *0.8;%was800
-% cstart = cols *0.1;
-% cend = cols * 0.8;
-
-%ROWS 0-500
-%COL 0-570
 rstart = 150;%was 
 rend = 470;%up to 570 
 cstart = 225;%200
 cend = 275;%300 good
-
-bluetoothObj.fullRight;
 disp("move to the Right");
-
-for i = 1:30
-
-%have to grab images from in here
-%might desync image sent and image recieve
-    
-fprintf('value of i: %d\n', i); 
+fprintf('Loop number: %d\n', i); 
 ROI_image = ROI_creation(PAIMG2,rstart,rend,cstart,cend);
-% size(ROI_image)
 inpict = ROI_image;
-
-%works here
-% imagesc(inpict);
-
 inpict = inpict - mean(inpict,2);
-% inpict = mat2gray(inpict);
-
-
-% imagesc(inpict)
-% title("inpict")
-% hold on
-% imshow(inpict);
-% max(inpict)
-
-
-
 % low pass elliptical filering of the input image (to remove further the
 % salt pepper noise) - adjust filter cut off and order to your own
 % preferences
-
 %rearange Fourier transform
-
-% K = medfilt
 spec_img = fftshift(fft2(inpict));
-
 sze = size(spec_img);
 cutoffM = 0.35;
 cutoffm = 0.05;     
 n = 6;
 f = EFilter(sze, cutoffM, cutoffm, n);
-
 % apply filter
 spec_img = spec_img.*f;
-
 % generated backward the output image by inverse fft
 outpict = real(ifft2(ifftshift(spec_img)));
-
-figure
-subplot(2,1,1),imshow(inpict)
-subplot(2,1,2),imshow(outpict)
-drawnow;
-
-% imagesc(outpict)
-
-
+%IMPORTANT
+% figure
+% subplot(2,1,1),imshow(inpict)
+% subplot(2,1,2),imshow(outpict)
+% title(['Partial + Image number: ', num2str(k)])
+% drawnow;
 % %outpic is blurred 
 
 %% attempt to extract the white segment
@@ -128,11 +85,12 @@ drawnow;
 binaryImage = outpict > .5 * max(outpict(:)); 
 
 % Display the binary image
-figure;
-imshow(binaryImage);
-title('Binary Image (White Segments)');
-hold on;
-drawnow;
+%IMPORTANT FIGURE
+% figure;
+% imshow(binaryImage);
+% title('Binary Image (White Segments)');
+% hold on;
+% drawnow;
 
 % pause(15);
 
@@ -154,18 +112,6 @@ else
     avgPixelValue = mean(pixelValues);
     disp("avg pix val: " + avgPixelValue)
     
-    
-    %maybe find a way to keep track of time
-    %if avgPixelValue < .3 && control_var < 5
-    %    bluetoothObj.stepF;
-    %    control_var = control_var + 1;
-    %elseif avgPixelValue < .3 && control_var < 10
-    %    bluetoothObj.stepB;
-    %    control_var = control_var + 1;
-    %elseif avgPixelValue < .3 && control_var > 10
-    %    bluetoothObj.sweep
-    %    control_var = 0;
-    %end
     
     % last round !!!
     % let say we don't want to keep line objects with width > tol (in pixels)
@@ -207,8 +153,8 @@ else
 
 
 
-    for i = 1:(numel(yfinal) - 1)
-        x  = i - y;
+    for a = 1:(numel(yfinal) - 1)
+        x  = a - y;
         current_y = yfinal(x);
         next_y = yfinal(i+1);
 
@@ -217,8 +163,8 @@ else
         % abs(current_x - next_x)
         if (next_y - current_y) > 15%check dist
             % numel(yfinal);
-            new_y_final(i+1-y) = [];
-            new_x_final(i+1-y) = [];
+            new_y_final(a+1-y) = [];
+            new_x_final(a+1-y) = [];
             y = y + 1 ;
         end
     end
@@ -226,74 +172,46 @@ else
     % p = polyfit(new_x_final, new_y_final, 0);
     % y_fit = polyval(p, x);
     % y_fit = polyval(p, x);
-    plot(new_x_final,new_y_final);
 
 
-    % for k -> num of elements in y_selec_uniq
-        %get the y value y_val = y_sekec_unic(k)
-        %get largest and smallest x vals corrasponding to that y val(thats why x selected does)
-        %subtract abs val - dx
-
-
-    % m = 0;  
-    % % disp(numel(y_selec_unic))
-    % for k = 1:numel(y_selec_unic)
-    %     ind = ic == k;
-    %     x_selected = x_selec(ind);
-    %     dx = max(x_selected) - min(x_selected);
-    %     if dx < tol_m %|| dx > tol_M% we keep 
-    %         m = m + 1;
-    %         yfinal(m) = y_selec_unic(k);
-    %         xfinal(m) = mean(x_selected);
-    %     end
-    % end
-    % plot(xfinal,yfinal)
-    % title(':test')
-    % disp("a")
-    
-
-
-    % return
-
-    % tmp = abs(diff(new_x_final));
-    % ind = find(tmp>0.2*max(tmp));%make temp higher.
-    % [v,ii] = max(diff(ind));
-    % iii = ind(ii):ind(ii+1);
-    % xxx = new_x_final(iii);
-    % yyy = new_y_final(iii);
-    
-    %plot(xxx, yyy, 'dg') %check
-    
-    hold off;
+    %IMPORTANT ISH
+    % plot(new_x_final,new_y_final);
+    % hold off;
     
     
     %% FINAL PLOT !!!!!!!!!
     
-    % figure
-    % imshow(inpict)
-    % hold on 
-    % plot(xxx, yyy, '.r')
-    % hold off;
-    % drawnow;
+    % inpict_res{i} = inpict;
+    % val = {new_x_final,new_y_final};
+    % final_res{i} = val;
+    % results(i).image = inpict; % Original image
+    % results(i).coordinates = [new_x_final(:), new_y_final(:)]; % Nx2 array of coordinates
+    % results(i).figure_handle = figure;
+
+
     figure
     imshow(inpict)
     hold on 
     plot(new_x_final,  new_y_final, '.r')
     hold off;
+    title(['Image number: ', num2str(i)])
     drawnow;
 
-    toc
+    % toc
+    bluetoothObj.stepB
+    disp("STEP BACK")
 end
 bluetoothObj.stepB
-disp("next step")
-pause(1)
-
-
+disp(["next step! Step done:",num2str(i)])
+pause(2)
+%this is the for loop
 end
-pause(100000)
-disp("FIRST SET OVER")
 
-end
+
+% pause(100000)
+% disp("FIRST SET OVER")
+
+% end
 
 
 

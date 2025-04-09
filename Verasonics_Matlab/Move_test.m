@@ -10,6 +10,8 @@
 bluetoothObj.fullRight
 pause(5)
 disp("ready");
+
+
 for i = 1:30
 fprintf('value of x: %d\n', i); 
 bluetoothObj.stepB

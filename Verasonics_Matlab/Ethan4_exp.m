@@ -11,10 +11,11 @@ rosinit
 
 
 
-% for asdf = 1:30
-%     inpict_res{asdf} =[];
-%     final_res{asdf} = [];
-% end
+for asdf = 1:30
+    inpict_res{asdf} =[];
+    final_res{asdf} = [];
+    pix_val{asdf} = [];
+end
 
     
 results = struct;
@@ -27,8 +28,7 @@ tic;
 
 
 bluetoothObj = BluetoothClient();
-% while 1
-disp("in while")
+disp("in while");
 bluetoothObj.fullRight;
 for i = 1:30
 PAIMG_msg = receive(PAIMG_sub);
@@ -41,14 +41,14 @@ arr(arr < -50) = -50;
 arr = arr + 50;
 arr = arr / 50;
 PAIMG2 = arr;
-imagesc(PAIMG2);% dynamic range -50,0
-colormap gray
-drawnow
+%IMPORTANT
+% imagesc(PAIMG2);% dynamic range -50,0
+colormap gray;
 t = toc;
 % fprintf(['Frame #',num2str(k),'  F=',num2str(1/(t-t1)),'Hz\n'])
 k = k+1;
 t1 = t;
-colormap gray
+colormap gray;
 rstart = 150;%was 
 rend = 470;%up to 570 
 cstart = 225;%200
@@ -103,13 +103,15 @@ if y_selec == -1
     disp("not found!")
 else
     %draw around found boundry points
-    plot(x,y, '.', x_selec, y_selec, '.r')
-    title('Boundary points Highlighted');
-    drawnow;
+    %IMPORTANT
+    % plot(x,y, '.', x_selec, y_selec, '.r')
+    % title('Boundary points Highlighted');
+    % drawnow;
     
     %find the avg pix values for the threshold values
     pixelValues = inpict(sub2ind(size(binaryImage), y, x));
     avgPixelValue = mean(pixelValues);
+    pix_val{i} = avgPixelValue;
     disp("avg pix val: " + avgPixelValue)
     
     
@@ -156,7 +158,7 @@ else
     for a = 1:(numel(yfinal) - 1)
         x  = a - y;
         current_y = yfinal(x);
-        next_y = yfinal(i+1);
+        next_y = yfinal(a+1);
 
         % current_x = xfinal(x);
         % next_x = xfinal(i+1);
@@ -181,31 +183,62 @@ else
     
     %% FINAL PLOT !!!!!!!!!
     
-    % inpict_res{i} = inpict;
-    % val = {new_x_final,new_y_final};
-    % final_res{i} = val;
+    inpict_res{i} = inpict;
+    val = {new_x_final,new_y_final};
+    final_res{i} = val;
     % results(i).image = inpict; % Original image
     % results(i).coordinates = [new_x_final(:), new_y_final(:)]; % Nx2 array of coordinates
     % results(i).figure_handle = figure;
 
 
+    inpict_f = inpict_res{i};
+    val = final_res{i};
+    new_x_final_f = val{1};
+    new_y_final_f = val{2};
+    pix_val_f = pix_val{i};
+    %IMPORTANT
+    imshow(inpict_f);
     figure
-    imshow(inpict)
-    hold on 
-    plot(new_x_final,  new_y_final, '.r')
+    imshow(inpict_f);
+    hold on;
+    plot(new_x_final_f, new_y_final_f, '.r');
     hold off;
-    title(['Image number: ', num2str(i)])
+    title(['Image number: ', num2str(i)]);
+    disp(pix_val_f);
     drawnow;
 
     % toc
-    bluetoothObj.stepB
-    disp("STEP BACK")
+
+    % bluetoothObj.stepB
+    % disp("STEP BACK")
 end
 bluetoothObj.stepB
 disp(["next step! Step done:",num2str(i)])
-pause(2)
+pause(1)
 %this is the for loop
-end
+end 
+
+disp("Displaying")
+%IMPORTANT
+%can copy paste this to display after the run
+% for i = 1:length(inpict_res)
+%     inpict = inpict_res{i};
+%     val = final_res{i};
+%     new_x_final = val{1};
+%     new_y_final = val{2};
+%     pix_val_f = pix_val{i};
+    
+%     figure;
+%     imshow(inpict);
+%     hold on;
+%     plot(new_x_final, new_y_final, '.r');
+%     hold off;
+%     title(['Image number: ', num2str(i)]);
+%     disp(pix_val_f);
+%     drawnow;
+% end
+
+
 
 
 % pause(100000)
@@ -314,6 +347,7 @@ if nargout > 0
   varargout{1} = f;
 else
   %Plots a normalized (+/- 1), interpolated 3D image of the filter
+  %IMPORTANT
   surf([-1:2/(cols-1):1],[-1:2/(rows-1):1], f);
   shading interp;
   title('Elliptical Butterworth filter');

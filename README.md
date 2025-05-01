@@ -12,7 +12,7 @@ tranfer Host files to Verasonics computer
   ytSetUpP4_1...: Run code fo verasonics
   yt_ROSinit: check the ROS master URI as well as the local_ip
   yt_ROSsync: defines buffer and type to send messages
-# Home
+$ Home
 Ethan3_test: can be run without any setup above and just process the images in Data_New
 Ethan4_exp: Once ROS and ESP connected it can be called to run and process the images in real time as long as the Verasonics machine is sending images.
 Move_test.m: Makes sure motor moves
